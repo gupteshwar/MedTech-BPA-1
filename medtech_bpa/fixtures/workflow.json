@@ -149,7 +149,7 @@
   "doctype": "Workflow",
   "document_type": "Purchase Receipt",
   "is_active": 1,
-  "modified": "2021-06-21 11:55:08.529487",
+  "modified": "2021-12-29 16:38:47.941182",
   "name": "Purchase Receipt QC",
   "override_status": 0,
   "parent": null,
