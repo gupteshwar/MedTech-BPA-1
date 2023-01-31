@@ -75,18 +75,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2021-01-14 17:35:33.073623",
-  "name": "For Receipt",
-  "parent": null,
-  "parentfield": null,
-  "parenttype": null,
-  "style": "Info",
-  "workflow_state_name": "For Receipt"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
   "modified": "2021-01-07 16:34:39.638300",
   "name": "Submitted",
   "parent": null,
@@ -238,5 +226,17 @@
   "parenttype": null,
   "style": "",
   "workflow_state_name": "Modified"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2021-01-14 17:35:33.073623",
+  "name": "For Receipt",
+  "parent": null,
+  "parentfield": null,
+  "parenttype": null,
+  "style": "Info",
+  "workflow_state_name": "For Receipt"
  }
 ]
