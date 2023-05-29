@@ -90,13 +90,13 @@ app_license = "MIT"
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
+scheduler_events = {
 # 	"all": [
 # 		"medtech_bpa.tasks.all"
 # 	],
-# 	"daily": [
-# 		"medtech_bpa.tasks.daily"
-# 	],
+	"daily": [
+		"medtech_bpa.medtech_bpa.utils.delete_email_queues"
+	],
 # 	"hourly": [
 # 		"medtech_bpa.tasks.hourly"
 # 	],
@@ -106,7 +106,7 @@ app_license = "MIT"
 # 	"monthly": [
 # 		"medtech_bpa.tasks.monthly"
 # 	]
-# }
+}
 
 # Testing
 # -------
