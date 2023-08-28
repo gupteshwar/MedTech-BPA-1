@@ -121,7 +121,11 @@ def validate_filters(filters):
 	if filters.get("from_date"): 
 		conditions += " and pr.posting_date >= '{0}'".format(filters.get("from_date"))
 	if filters.get("to_date"): 
-		conditions += " and pr.posting_date <= '{0}'".format(filters.get("to_date"))	 
+		conditions += " and pr.posting_date <= '{0}'".format(filters.get("to_date"))
+	if filters.get("po_from_date"): 
+		conditions += " and po.transaction_date >= '{0}'".format(filters.get("po_from_date"))
+	if filters.get("po_to_date"): 
+		conditions += " and po.transaction_date <= '{0}'".format(filters.get("po_to_date")) 
 	return conditions	
 
 def get_columns():

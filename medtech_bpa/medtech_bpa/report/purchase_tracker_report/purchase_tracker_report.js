@@ -5,13 +5,24 @@
 frappe.query_reports["Purchase Tracker Report"] = {
 	"filters": [
 		{
-			"label": __("From Date"),
+			"label": __("VIR From Date"),
 			"fieldname":"from_date",
 			"fieldtype": "Date"
 		},
 		{
-			"label": __("To Date"),
+			"label": __("VIR To Date"),
 			"fieldname":"to_date",
+			"fieldtype": "Date"
+		},
+		//added po date filter
+		{
+			"label": __("PO From Date"),
+			"fieldname":"po_from_date",
+			"fieldtype": "Date"
+		},
+		{
+			"label": __("PO To Date"),
+			"fieldname":"po_to_date",
 			"fieldtype": "Date"
 		}
 	]
