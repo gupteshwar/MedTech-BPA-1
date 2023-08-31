@@ -79,7 +79,7 @@ def get_data(filters):
 			INNER JOIN `tabPurchase Receipt Item` pri ON pr.name = pri.parent 
 			LEFT JOIN `tabPurchase Order` po ON pri.purchase_order = po.name 
 			INNER JOIN `tabPurchase Order Item` poi ON po.name = poi.parent and pri.item_name = poi.item_name
-		where {0} and pr.is_return != 1 AND pr.docstatus = 1
+		where {0} and pr.is_return != 1 
 		order by pr.creation
 			""".format(validate_filters(filters)), as_dict = 1)
 	print("****************", query_data)
