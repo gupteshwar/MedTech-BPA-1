@@ -1,0 +1,66 @@
+{
+ "actions": [],
+ "creation": "2023-09-05 21:36:37.812203",
+ "doctype": "DocType",
+ "document_type": "Setup",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "types",
+  "account_heads",
+  "rate",
+  "tax_amount"
+ ],
+ "fields": [
+  {
+   "columns": 2,
+   "default": "On Net Total",
+   "fieldname": "types",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Type",
+   "oldfieldname": "charge_type",
+   "oldfieldtype": "Select",
+   "options": "On Net Total",
+   "reqd": 1
+  },
+  {
+   "fieldname": "account_heads",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Account Head",
+   "options": "\nInput IGST - MLPL\nInput SGST/UTGST - MLPL\nInput CGST - MLPL\nTotal Invoice Value\nTDS / TCS",
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "rate",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Rate",
+   "oldfieldname": "rate",
+   "oldfieldtype": "Currency"
+  },
+  {
+   "columns": 2,
+   "fieldname": "tax_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Amount",
+   "oldfieldname": "tax_amount",
+   "oldfieldtype": "Currency",
+   "options": "currency"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2023-09-05 21:36:37.812203",
+ "modified_by": "Administrator",
+ "module": "MedTech-BPA",
+ "name": "MedTech TDS Taxes",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
