@@ -82,7 +82,7 @@ def get_data(filters):
 		where {0} and pr.is_return != 1 
 		order by pr.creation
 			""".format(validate_filters(filters)), as_dict = 1)
-	print("****************", query_data)
+	print("******************", query_data)
 	
 
 	final_data = []
