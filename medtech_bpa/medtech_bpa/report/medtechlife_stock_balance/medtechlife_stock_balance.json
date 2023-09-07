@@ -1,0 +1,31 @@
+{
+ "add_total_row": 1,
+ "columns": [],
+ "creation": "2023-09-07 16:42:24.416666",
+ "disable_prepared_report": 0,
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "idx": 0,
+ "is_standard": "Yes",
+ "letter_head": "Sales Invoice Letterhead",
+ "modified": "2023-09-07 16:42:24.416666",
+ "modified_by": "Administrator",
+ "module": "MedTech-BPA",
+ "name": "Medtechlife Stock Balance",
+ "owner": "Administrator",
+ "prepared_report": 1,
+ "query": "",
+ "ref_doctype": "Stock Ledger Entry",
+ "report_name": "Medtechlife Stock Balance",
+ "report_type": "Script Report",
+ "roles": [
+  {
+   "role": "Stock User"
+  },
+  {
+   "role": "Accounts Manager"
+  }
+ ]
+}
