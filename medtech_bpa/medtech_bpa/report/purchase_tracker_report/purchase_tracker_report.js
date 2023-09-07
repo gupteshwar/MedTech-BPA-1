@@ -24,6 +24,22 @@ frappe.query_reports["Purchase Tracker Report"] = {
 			"label": __("PO To Date"),
 			"fieldname":"po_to_date",
 			"fieldtype": "Date"
-		}
+		},
+		{
+			"label": __("Items"),
+			"fieldname":"items",
+			"fieldtype": "MultiSelectList",
+			get_data: function(txt) {
+				return frappe.db.get_link_options('Item', txt);
+			}
+		},
+		{
+			"label": __("PO No"),
+			"fieldname":"po_no",
+			"fieldtype": "MultiSelectList",
+			get_data: function(txt) {
+				return frappe.db.get_link_options('Purchase Order', txt);
+			}		
+		}	
 	]
 };

@@ -82,7 +82,7 @@ def get_data(filters):
 		where {0} and pr.is_return != 1 
 		order by pr.creation
 			""".format(validate_filters(filters)), as_dict = 1)
-	print("******************", query_data)
+	print("****************", query_data)
 	
 
 	final_data = []
@@ -125,7 +125,19 @@ def validate_filters(filters):
 	if filters.get("po_from_date"): 
 		conditions += " and po.transaction_date >= '{0}'".format(filters.get("po_from_date"))
 	if filters.get("po_to_date"): 
-		conditions += " and po.transaction_date <= '{0}'".format(filters.get("po_to_date")) 
+		conditions += " and po.transaction_date <= '{0}'".format(filters.get("po_to_date"))
+	if filters.get("items"):
+		item_list=filters.get("items")
+		if len(item_list)==1:
+			conditions +=f" and pri.item_code = '{item_list[0]}'"
+		else:
+			conditions += f" and pri.item_code in {tuple(item_list)}"
+	if filters.get("po_no"):
+		po_list1=filters.get("po_no")
+		if len(po_list1)==1:
+			conditions +=f" and po.name = '{po_list1[0]}'"
+		else:
+			conditions += f" and po.name in {tuple(po_list1)}"			 
 	return conditions	
 
 def get_columns():

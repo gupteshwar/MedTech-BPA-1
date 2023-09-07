@@ -1,5 +1,5 @@
 {
- "add_total_row": 0,
+ "add_total_row": 1,
  "columns": [],
  "creation": "2021-01-15 02:31:15.647704",
  "disable_prepared_report": 0,
@@ -9,7 +9,7 @@
  "filters": [],
  "idx": 0,
  "is_standard": "Yes",
- "modified": "2023-08-30 15:22:52.478128",
+ "modified": "2023-09-07 16:34:58.500873",
  "modified_by": "Administrator",
  "module": "MedTech-BPA",
  "name": "Purchase Tracker Report",
