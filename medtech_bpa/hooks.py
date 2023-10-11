@@ -139,6 +139,7 @@ doctype_js = {
 	"Stock Entry":"medtech_bpa/custom_scripts/stock_entry/stock_entry.js",
 	"Purchase Order":"medtech_bpa/custom_scripts/purchase_order/purchase_order.js",
 	"Sales Order":"medtech_bpa/custom_scripts/sales_order/sales_order.js",
+	"Sales Invoice":"medtech_bpa/custom_scripts/sales_invoice/sales_invoice.js",
 	"Payment Entry":"medtech_bpa/custom_scripts/payment_entry/payment_entry.js"
 }
 
