@@ -3,7 +3,7 @@ frappe.ui.form.on('Sales Invoice', {
     before_save(frm) {
         frm.doc.items.forEach(row=>{
             if (row.discount_percentage !=0 && row.spl_disc !=0 && row.free_qty == 0 && row.additional_spl_disc == 0){
-                console.log("!!! !!!!!1")
+                console.log("!!! !!!!!!1")
                 row.discount_amounts = row.price_list_rate * (row.discount_percentage / 100)
                 row.dis_amt_rate = row.price_list_rate - row.discount_amounts
                 row.spl_disc_amt = row.dis_amt_rate * (row.spl_disc / 100)
