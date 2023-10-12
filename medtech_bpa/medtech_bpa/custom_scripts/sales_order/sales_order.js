@@ -253,7 +253,7 @@ frappe.ui.form.on("Sales Order", {
                 row.base_net_amount = row.qty * row.rate
             }
             else if (row.additional_spl_disc != 0 && row.discount_percentage == 0 && row.spl_disc == 0 && row.free_qty == 0){
-                console.log("!!! !!!!!10")
+                console.log("!!!! !!!!!10")
                 row.additional_spl_disc_amt = row.price_list_rate * (row.additional_spl_disc/100) * row.qty
                 console.log(row.additional_spl_disc_amt)
                 row.additional_spl_disc_amt_rate = row.additional_spl_disc_amt / row.qty
