@@ -49,6 +49,17 @@ frappe.ui.form.on('Sales Invoice', {
                 row.net_amount = row.qty * row.rate
                 row.base_net_amount = row.qty * row.rate
             }
+            else if (row.discount_percentage == 0 && row.spl_disc == 0 && row.free_qty == 0 && row.additional_spl_disc == 0){
+                row.additional_spl_disc_amt_rate = row.additional_spl_disc_amt / row.qty
+                console.log(row.additional_spl_disc_amt_rate)
+                row.rate = row.price_list_rate - row.additional_spl_disc_amt_rate
+                row.base_rate = row.price_list_rate - row.additional_spl_disc_amt_rate
+                row.total_dis_for_qty = row.qty * (row.discount_amounts + row.spl_disc_amt)
+                row.amount = row.qty * row.rate
+                row.base_amount = row.qty * row.rate
+                row.net_amount = row.qty * row.rate
+                row.base_net_amount = row.qty * row.rate   
+            }
            // calculation base on free qty 
            else if (row.discount_percentage != 0 && row.spl_disc != 0 && row.free_qty != 0){
                 console.log("!!! !!!!!4")
@@ -104,6 +115,22 @@ frappe.ui.form.on('Sales Invoice', {
                 
     
             }
+            else if (row.discount_percentage == 0 && row.spl_disc == 0 && row.free_qty != 0){
+                console.log("!!! !!!!!6 direct free qty")
+                row.additional_spl_disc_amt = row.free_qty * row.price_list_rate
+                console.log(row.additional_spl_disc_amt)
+                row.additional_spl_disc_amt_rate =row.additional_spl_disc_amt / row.qty
+                row.rate = row.price_list_rate -row.additional_spl_disc_amt_rate
+                row.base_rate =row.price_list_rate - row.additional_spl_disc_amt_rate
+                row.total_dis_for_qty = row.qty * (row.discount_amounts + row.additional_spl_disc_amt)
+                row.amount = row.qty * row.rate
+                row.base_amount = row.qty * row.rate
+                row.net_amount = row.qty * row.rate
+                row.base_net_amount = row.qty * row.rate
+                
+    
+            }
+
             // calculation base on  percentage
             else if (row.additional_spl_disc != 0 && row.discount_percentage != 0 && row.spl_disc != 0 && row.free_qty == 0){
                 console.log("!!! !!!!!7")
@@ -155,6 +182,20 @@ frappe.ui.form.on('Sales Invoice', {
                 console.log(row.additional_spl_disc_amt_rate)
                 row.rate = row.spl_disc_amt_rate - row.additional_spl_disc_amt_rate
                 row.base_rate = row.spl_disc_amt_rate - row.additional_spl_disc_amt_rate
+                row.total_dis_for_qty = row.qty * (row.discount_amounts + row.spl_disc_amt)
+                row.amount = row.qty * row.rate
+                row.base_amount = row.qty * row.rate
+                row.net_amount = row.qty * row.rate
+                row.base_net_amount = row.qty * row.rate
+            }
+            else if (row.additional_spl_disc != 0 && row.discount_percentage == 0 && row.spl_disc == 0 && row.free_qty == 0){
+                console.log("!!! !!!!!10")
+                row.additional_spl_disc_amt = row.price_list_rate * (row.additional_spl_disc/100) * row.qty
+                console.log(row.additional_spl_disc_amt)
+                row.additional_spl_disc_amt_rate = row.additional_spl_disc_amt / row.qty
+                console.log(row.additional_spl_disc_amt_rate)
+                row.rate = row.price_list_rate - row.additional_spl_disc_amt_rate
+                row.base_rate = row.price_list_rate - row.additional_spl_disc_amt_rate
                 row.total_dis_for_qty = row.qty * (row.discount_amounts + row.spl_disc_amt)
                 row.amount = row.qty * row.rate
                 row.base_amount = row.qty * row.rate

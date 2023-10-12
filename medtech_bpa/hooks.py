@@ -140,7 +140,8 @@ doctype_js = {
 	"Purchase Order":"medtech_bpa/custom_scripts/purchase_order/purchase_order.js",
 	"Sales Order":"medtech_bpa/custom_scripts/sales_order/sales_order.js",
 	"Sales Invoice":"medtech_bpa/custom_scripts/sales_invoice/sales_invoice.js",
-	"Payment Entry":"medtech_bpa/custom_scripts/payment_entry/payment_entry.js"
+	"Payment Entry":"medtech_bpa/custom_scripts/payment_entry/payment_entry.js",
+	"Delivery Note":"medtech_bpa/custom_scripts/delivery_note/delivery_note.js",
 }
 
 
@@ -183,6 +184,7 @@ doc_events = {
 	"Sales Invoice":{
 		"validate":"medtech_bpa.medtech_bpa.custom_scripts.sales_invoice.sales_invoice.validate",
 		"on_submit":"medtech_bpa.medtech_bpa.custom_scripts.sales_invoice.sales_invoice.on_submit"
+
 	}
 }
 
