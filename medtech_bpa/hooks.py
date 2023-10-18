@@ -94,12 +94,12 @@ scheduler_events = {
 # 	"all": [
 # 		"medtech_bpa.tasks.all"
 # 	],
-	"daily": [
+	# "daily": [
+	# 	"medtech_bpa.medtech_bpa.utils.delete_email_queues"
+	# ],
+	"hourly": [
 		"medtech_bpa.medtech_bpa.utils.delete_email_queues"
 	],
-# 	"hourly": [
-# 		"medtech_bpa.tasks.hourly"
-# 	],
 # 	"weekly": [
 # 		"medtech_bpa.tasks.weekly"
 # 	]
