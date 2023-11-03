@@ -24,7 +24,7 @@ def on_submit(doc, method):
 		so_doc.db_update()
 		frappe.db.commit()
 	try:
-		# if doc.workflow_state == 'Payment Pending':
+		# #if doc.workflow_state == 'Payment Pending':
 		#get email ids
 		recipients = [frappe.db.get_value("Customer", doc.customer, "email_id")]
 		cc = []
