@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 import frappe
+from frappe import _
 from frappe.utils.background_jobs import enqueue
 
 
@@ -54,3 +55,11 @@ def on_submit(doc, method):
 		return doc.name
 	except Exception as e:
 		print("#####################\n {}".format(str(e)))
+
+
+
+def before_save(doc,method):
+	for row in doc.items:
+		if row.fully_discount == 1 and row.fully_discount_rate == 0:
+			frappe.throw(frappe._("Fully discount rate field is mandatory at row {0}.").format(row.idx))
+

@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 import frappe
+from frappe import _
+
 
 
 def validate(doc, method):
@@ -9,3 +11,10 @@ def validate(doc, method):
 		so_doc.workflow_state = "Pending Dispatch"
 		so_doc.db_update()
 		frappe.db.commit()
+
+
+def before_save(doc,method):
+	for row in doc.items:
+		if row.fully_discount == 1 and row.fully_discount_rate == 0:
+			frappe.throw(frappe._("Fully discount rate field is mandatory at row {0}.").format(row.idx))
+

@@ -173,17 +173,20 @@ doc_events = {
 	"Sales Order":{
 		"on_update_after_submit":"medtech_bpa.medtech_bpa.custom_scripts.sales_order.sales_order.on_update_after_submit",
 		"validate": ["medtech_bpa.medtech_bpa.custom_scripts.sales_order.sales_order.validate",
-			"medtech_bpa.medtech_bpa.custom_scripts.sales_order.sales_order.update_rate_with_taxes"]
+			"medtech_bpa.medtech_bpa.custom_scripts.sales_order.sales_order.update_rate_with_taxes"],
+		"before_save":"medtech_bpa.medtech_bpa.custom_scripts.sales_order.sales_order.before_save",	
 	},
 	"Delivery Note":{
-		"validate":"medtech_bpa.medtech_bpa.custom_scripts.delivery_note.delivery_note.validate"
+		"validate":"medtech_bpa.medtech_bpa.custom_scripts.delivery_note.delivery_note.validate",
+		"before_save":"medtech_bpa.medtech_bpa.custom_scripts.delivery_note.delivery_note.before_save"
 	},
 	"BOM":{
 	"autoname":"medtech_bpa.medtech_bpa.custom_scripts.bom.bom.autoname"
 	},
 	"Sales Invoice":{
 		"validate":"medtech_bpa.medtech_bpa.custom_scripts.sales_invoice.sales_invoice.validate",
-		"on_submit":"medtech_bpa.medtech_bpa.custom_scripts.sales_invoice.sales_invoice.on_submit"
+		"on_submit":"medtech_bpa.medtech_bpa.custom_scripts.sales_invoice.sales_invoice.on_submit",
+		"before_save":"medtech_bpa.medtech_bpa.custom_scripts.sales_invoice.sales_invoice.before_save"
 
 	}
 }

@@ -1,5 +1,6 @@
 import json
 import frappe
+from frappe import _
 from frappe.utils import getdate, flt
 from frappe.utils.background_jobs import enqueue
 
@@ -148,3 +149,8 @@ def reason_of_rejection(reason, name):
 	doc.save()
 
 	return True
+
+def before_save(doc,method):
+	for row in doc.items:
+		if row.fully_discount == 1 and row.fully_discount_rate == 0:
+			frappe.throw(frappe._("Fully discount rate field is mandatory at row {0}.").format(row.idx))
