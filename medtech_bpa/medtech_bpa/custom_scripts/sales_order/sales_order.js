@@ -83,7 +83,7 @@ frappe.ui.form.on("Sales Order", {
                 row.net_amount = row.qty * row.rate
                 row.base_net_amount = row.qty * row.rate
             }
-            else if (row.discount_percentage !=0 && row.spl_disc !=0 && row.free_qty == 0 && row.additional_spl_disc == 0 && row.fully_discount == 1){
+            else if (row.discount_percentage !=0 && row.spl_disc !=0 && row.free_qty == 0 && row.additional_spl_disc == 0 && row.fully_discount == 1 && frm.doc.docstatus == 0 && row.price_list_rate != 0){
                 console.log("!!! !!!!!!11")
                 row.discount_amounts = row.price_list_rate * (row.discount_percentage / 100)
                 row.dis_amt_rate = row.price_list_rate - row.discount_amounts
@@ -116,7 +116,7 @@ frappe.ui.form.on("Sales Order", {
                 row.base_net_amount = row.qty * row.rate
 
             }
-            else if (row.discount_percentage !=0 && row.spl_disc == 0 && row.free_qty == 0 && row.additional_spl_disc == 0 && row.fully_discount == 1){
+            else if (row.discount_percentage !=0 && row.spl_disc == 0 && row.free_qty == 0 && row.additional_spl_disc == 0 && row.fully_discount == 1 && frm.doc.docstatus == 0 && row.price_list_rate != 0){
                 console.log("!!! !!!!!22")
                 row.discount_amounts = row.price_list_rate * (row.discount_percentage / 100)
                 row.dis_amt_rate = row.price_list_rate - row.discount_amounts
@@ -147,7 +147,7 @@ frappe.ui.form.on("Sales Order", {
                 row.net_amount = row.qty * row.rate
                 row.base_net_amount = row.qty * row.rate
             }
-            else if (row.discount_percentage == 0 && row.spl_disc != 0 && row.free_qty == 0 && row.additional_spl_disc == 0 && row.fully_discount == 1){
+            else if (row.discount_percentage == 0 && row.spl_disc != 0 && row.free_qty == 0 && row.additional_spl_disc == 0 && row.fully_discount == 1 && frm.doc.docstatus == 0 && row.price_list_rate != 0){
                 console.log("!!! !!!!!33")
                 row.spl_disc_amt = row.price_list_rate * (row.spl_disc / 100)
                 row.spl_disc_amt_rate = row.price_list_rate - row.spl_disc_amt
@@ -176,7 +176,7 @@ frappe.ui.form.on("Sales Order", {
                 row.net_amount = row.qty * row.rate
                 row.base_net_amount = row.qty * row.rate   
             }
-            else if (row.discount_percentage == 0 && row.spl_disc == 0 && row.free_qty == 0 && row.additional_spl_disc == 0 && row.fully_discount == 1){
+            else if (row.discount_percentage == 0 && row.spl_disc == 0 && row.free_qty == 0 && row.additional_spl_disc == 0 && row.fully_discount == 1 && frm.doc.docstatus == 0 && row.price_list_rate != 0){
                 console.log("@@@@@@@@@@@@@@@@1")
                 row.additional_spl_disc_amt_rate = row.additional_spl_disc_amt / row.qty
                 console.log(row.additional_spl_disc_amt_rate)
@@ -208,7 +208,7 @@ frappe.ui.form.on("Sales Order", {
                 row.net_amount = row.qty * row.rate
                 row.base_net_amount = row.qty * row.rate
             }
-            else if (row.discount_percentage != 0 && row.spl_disc != 0 && row.free_qty != 0 && row.fully_discount == 1){
+            else if (row.discount_percentage != 0 && row.spl_disc != 0 && row.free_qty != 0 && row.fully_discount == 1 && frm.doc.docstatus == 0 && row.price_list_rate != 0){
                 console.log("!!! !!!!!44")
                 row.discount_amounts = row.price_list_rate * (row.discount_percentage / 100)
                 row.dis_amt_rate = row.price_list_rate - row.discount_amounts
@@ -243,7 +243,7 @@ frappe.ui.form.on("Sales Order", {
                 row.base_net_amount = row.qty * row.rate
     
             }
-            else if (row.discount_percentage != 0 && row.spl_disc == 0 && row.free_qty !=  0 && row.fully_discount == 1){
+            else if (row.discount_percentage != 0 && row.spl_disc == 0 && row.free_qty !=  0 && row.fully_discount == 1 && frm.doc.docstatus == 0 && row.price_list_rate != 0){
                 console.log("!!! !!!!!55")
                 row.discount_amounts = row.price_list_rate * (row.discount_percentage / 100)
                 row.dis_amt_rate = row.price_list_rate - row.discount_amounts
@@ -280,7 +280,7 @@ frappe.ui.form.on("Sales Order", {
                 
     
             }
-            else if (row.discount_percentage == 0 && row.spl_disc != 0 && row.free_qty != 0 && row.fully_discount == 1){
+            else if (row.discount_percentage == 0 && row.spl_disc != 0 && row.free_qty != 0 && row.fully_discount == 1 && frm.doc.docstatus == 0 && row.price_list_rate != 0){
                 console.log("!!! !!!!!66")
                 row.spl_disc_amt = row.price_list_rate * (row.spl_disc / 100)
                 console.log(row.spl_disc_amt)
@@ -317,7 +317,7 @@ frappe.ui.form.on("Sales Order", {
                 
     
             }
-            else if (row.discount_percentage == 0 && row.spl_disc == 0 && row.free_qty != 0 && row.fully_discount == 1){
+            else if (row.discount_percentage == 0 && row.spl_disc == 0 && row.free_qty != 0 && row.fully_discount == 1 && frm.doc.docstatus == 0 && row.price_list_rate != 0){
                 console.log("!!! !!!!!6222222222 direct free qty")
                 row.additional_spl_disc_amt = row.free_qty * row.price_list_rate
                 console.log(row.additional_spl_disc_amt)
@@ -357,7 +357,7 @@ frappe.ui.form.on("Sales Order", {
                 row.net_amount = row.qty * row.rate
                 row.base_net_amount = row.qty * row.rate
             }
-            else if (row.additional_spl_disc != 0 && row.discount_percentage != 0 && row.spl_disc != 0 && row.free_qty == 0 && row.fully_discount == 1){
+            else if (row.additional_spl_disc != 0 && row.discount_percentage != 0 && row.spl_disc != 0 && row.free_qty == 0 && row.fully_discount == 1 && frm.doc.docstatus == 0 && row.price_list_rate != 0){
                 console.log("!!! !!!!!77")
                 row.discount_amounts = row.price_list_rate * (row.discount_percentage / 100)
                 row.dis_amt_rate = row.price_list_rate - row.discount_amounts
@@ -396,7 +396,7 @@ frappe.ui.form.on("Sales Order", {
                 row.net_amount = row.qty * row.rate
                 row.base_net_amount = row.qty * row.rate
             }
-            else if (row.additional_spl_disc != 0 && row.discount_percentage != 0 && row.spl_disc == 0 && row.free_qty == 0 && row.fully_discount == 1){
+            else if (row.additional_spl_disc != 0 && row.discount_percentage != 0 && row.spl_disc == 0 && row.free_qty == 0 && row.fully_discount == 1 && frm.doc.docstatus == 0 && row.price_list_rate != 0){
                 console.log("!!! !!!!!88")
                 row.discount_amounts = row.price_list_rate * (row.discount_percentage / 100)
                 row.dis_amt_rate = row.price_list_rate - row.discount_amounts
@@ -432,7 +432,7 @@ frappe.ui.form.on("Sales Order", {
                 row.net_amount = row.qty * row.rate
                 row.base_net_amount = row.qty * row.rate
             }
-            else if (row.additional_spl_disc != 0 && row.discount_percentage == 0 && row.spl_disc != 0 && row.free_qty == 0 && row.fully_discount == 1){
+            else if (row.additional_spl_disc != 0 && row.discount_percentage == 0 && row.spl_disc != 0 && row.free_qty == 0 && row.fully_discount == 1 && frm.doc.docstatus == 0 && row.price_list_rate != 0){
                 console.log("!!! !!!!!99")
                 row.spl_disc_amt = row.price_list_rate * (row.spl_disc / 100)
                 row.spl_disc_amt_rate = row.price_list_rate - row.spl_disc_amt
@@ -465,7 +465,7 @@ frappe.ui.form.on("Sales Order", {
                 row.net_amount = row.qty * row.rate
                 row.base_net_amount = row.qty * row.rate
             }
-            else if (row.additional_spl_disc != 0 && row.discount_percentage == 0 && row.spl_disc == 0 && row.free_qty == 0 && row.fully_discount == 1){
+            else if (row.additional_spl_disc != 0 && row.discount_percentage == 0 && row.spl_disc == 0 && row.free_qty == 0 && row.fully_discount == 1 && frm.doc.docstatus == 0 && row.price_list_rate != 0){
                 console.log("!!! !!!!!110")
                 row.additional_spl_disc_amt = row.price_list_rate * (row.additional_spl_disc/100) * row.qty
                 console.log(row.additional_spl_disc_amt)
