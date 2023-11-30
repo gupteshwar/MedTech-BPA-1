@@ -19,6 +19,11 @@ frappe.ui.form.on("Payment Entry", {
 			"payment_entry": frm.doc.name
 		};
 		frappe.set_route("so_stock_allocation");
-	}	
+	},
+	
+	before_save: function (frm) {
+        // Set Paid Amount to Total Allocated Amount before saving
+		frm.doc.paid_amount = frm.doc.total_allocated_amount;
+    }
 });
 
