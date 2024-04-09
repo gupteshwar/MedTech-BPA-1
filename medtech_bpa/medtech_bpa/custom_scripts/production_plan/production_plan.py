@@ -300,7 +300,7 @@ def get_material_request_items(row, sales_order, company,
 
 	if frappe.db.get_value("UOM", row['purchase_uom'], "must_be_whole_number"):
 		required_qty = ceil(required_qty)
-	custom_qty_list = frappe.get_list("Material Request Plan Item",filters={'parent':doc.name,'item_code':row.item_code},fields={'qty_in_material_issue_warehouse','qty_in_wip_warehouse','quantity_to_be_issued','shortage_or_excess_quantity'})
+	custom_qty_list = frappe.get_all("Material Request Plan Item",filters={'parent':doc.name,'item_code':row.item_code},fields={'qty_in_material_issue_warehouse','qty_in_wip_warehouse','quantity_to_be_issued','shortage_or_excess_quantity'})
 	if include_safety_stock:
 		required_qty += flt(row['safety_stock'])
 

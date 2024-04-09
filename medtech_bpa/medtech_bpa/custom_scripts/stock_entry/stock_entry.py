@@ -52,7 +52,7 @@ def get_work_orders(production_plan,item):
 
 @frappe.whitelist()
 def get_items_from_production_plan(production_plan):
-	items = frappe.get_list("Production Plan Item",{'parent':production_plan},'item_code')
+	items = frappe.get_all("Production Plan Item",{'parent':production_plan},'item_code')
 	item_list = [item.item_code for item in items]
 	return item_list
 
