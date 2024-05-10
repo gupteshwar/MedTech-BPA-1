@@ -13,7 +13,7 @@ def delete_email_queues():
     d = int(c)
     a = "01"
     b = int(a)
-    if frappe.utils.get_datetime().weekday() in [1,3,5] and d == b:
+    if frappe.utils.get_datetime().weekday() in [0,1,2,3,4,5,6] and d == b:
 
         print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
         #getting the tuple of names of Email Queues with status in Sent or Error
