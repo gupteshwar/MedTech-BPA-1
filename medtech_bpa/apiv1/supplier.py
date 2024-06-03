@@ -1,9 +1,9 @@
 import frappe
 from ..api_utils.response import api_response
 from datetime import datetime
-#!Paginated Get Customer Details API
+
 @frappe.whitelist(allow_guest=False,methods=["GET"])
-def getCustomerList(timestamp="",limit=50,offset=0):
+def getSupplierList(timestamp="",limit=50,offset=0):
 
     #TODO 1: limit offset int format check
     try:
@@ -22,20 +22,17 @@ def getCustomerList(timestamp="",limit=50,offset=0):
         timestamp_datetime=datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
     except Exception as e:
         return api_response(status=False, data=[], message=f"Please Enter a valid timestamp {e}", status_code=400)
-
-    customer_list = frappe.get_all("Customer",
-        fields=["customer_code as customer_code",
-                "customer_name as customer_name",
-                "customer_type",
-                "customer_group",
-                "tax_id",
-                "territory",
+    #!======================================
+    customer_list = frappe.get_all("Supplier",
+        fields=["supplier_name as supplier_name",
+                "country as supplier_country",
+                "supplier_group as supplier_group",
+                "tax_id as supplier_tax_id",
                 "mobile_no",
                 "email_id",
-                "customer_primary_contact",
-                "customer_primary_address",
+                "supplier_primary_contact as supplier_contact",
                 "primary_address",
-                "modified as updated_at",
+                "modified as updated_at"
                 ],
             
             filters={
