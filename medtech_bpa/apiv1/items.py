@@ -23,7 +23,7 @@ def getItemGroupList(timestamp="",limit=100,offset=0):
     except Exception as e:
         return api_response(status=False, data=[], message=f"Please Enter a valid timestamp {e}", status_code=400)
 
-    customer_list = frappe.get_all("Item Group",
+    item_group_list = frappe.get_all("Item Group",
         fields=["item_group_name as item_group_name",
                 "parent_item_group as parent_item_group",
                 "is_group as is_group",
@@ -37,10 +37,10 @@ def getItemGroupList(timestamp="",limit=100,offset=0):
             start=offset,
             order_by='-modified'
         )
-    if len(customer_list)==0:
+    if len(item_group_list)==0:
         return api_response(status=True, data=[], message="Empty Content", status_code=204)
     else:
-        return api_response(status=True, data=customer_list, message="None", status_code=200)
+        return api_response(status=True, data=item_group_list, message="None", status_code=200)
        
         
                         
@@ -69,13 +69,16 @@ def getItemList(timestamp="",limit=100,offset=0):
     except Exception as e:
         return api_response(status=False, data=[], message=f"Please Enter a valid timestamp {e}", status_code=400)
 
-    customer_list = frappe.get_all("Item",
+    item_list = frappe.get_all("Item",
         fields=["item_group as item_category_name",
                 "item_name as item_name",
                 "item_code as item_code",
                 "description as item_description",
                 "stock_uom as item_stock_uom",
-                "modified as updated_at"
+                "modified as updated_at",
+                "weight_per_unit",
+                "weight_uom",
+                "name as id"
                 ],
             
             filters={
@@ -85,10 +88,14 @@ def getItemList(timestamp="",limit=100,offset=0):
             start=offset,
             order_by='-modified'
         )
-    if len(customer_list)==0:
+    if len(item_list)==0:
         return api_response(status=True, data=[], message="Empty Content", status_code=204)
     else:
-        return api_response(status=True, data=customer_list, message="None", status_code=200)
+        for item in item_list:
+            item_barcode_list=frappe.db.get_all("Item Barcode",filters={"parent":item["id"]},fields=["barcode_type"])
+            item["barcode"]=item_barcode_list
+        return api_response(status=True, data=item_list, message="None", status_code=200)
+
        
         
                         
