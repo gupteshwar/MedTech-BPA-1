@@ -133,3 +133,78 @@ def getAllpurchaseReturn(timestamp="",limit=50,offset=0):
                         
    
 
+
+@frappe.whitelist(allow_guest=False,methods=["POST"])
+def create_purchase_receipt_confirmation(
+                      visual_inspection_report="",
+                      organization_code="",
+                      po_number="",
+                      item_code="",
+                      sub_inventory="",
+                      bin_no="",
+                      batch_no="",
+                      qty="",
+                      process_flag="",
+                      error_message="",
+                      rec_entry_date=""
+                      ):
+            if visual_inspection_report=="":
+                return api_response(status=True, data=[], message="Enter Visual Inspection Report/Purchase Receipt", status_code=400)
+            if po_number=="":
+                return api_response(status=True, data=[], message="Enter PO Number", status_code=400)
+            if item_code=="":
+                return api_response(status=True, data=[], message="Enter Item Code", status_code=400)
+            if sub_inventory=="":
+                return api_response(status=True, data=[], message="Enter Sub Inventory", status_code=400)
+            if organization_code=="":
+                return api_response(status=True, data=[], message="Enter Organization Code", status_code=400)
+            if bin_no=="":
+                return api_response(status=True, data=[], message="Enter Bin No", status_code=400)
+            if batch_no=="":
+                return api_response(status=True, data=[], message="Enter Batch No", status_code=400)
+            if qty=="":
+                return api_response(status=True, data=[], message="Enter Qty", status_code=400)
+            if process_flag=="":
+                return api_response(status=True, data=[], message="Enter Process Flag", status_code=400)
+            if rec_entry_date=="":
+                return api_response(status=True, data=[], message="Enter Rec Entry Date", status_code=400)
+            try:
+                qty = int(qty)
+            except:
+                return api_response(status=False, data=[], message="Please Enter Proper Qty", status_code=400)
+            try:
+                rec_entry_date = datetime.strptime(rec_entry_date, '%Y-%m-%d')
+            except:
+                return api_response(status=False, data=[], message="Please Enter Proper Rec Entry Date", status_code=400)
+            if not frappe.db.exists("Purchase Receipt",visual_inspection_report):
+                return api_response(status=False, data=[], message="Visual Inspection Report Does Not Exist", status_code=400)
+            if not frappe.db.exists("Item",item_code):
+                return api_response(status=False, data=[], message="Item Does Not Exist", status_code=400)
+            
+            try:
+        # Create a new document for the custom doctype
+                doc = frappe.get_doc({
+                    "doctype": "Purchase Receipt Item Wise Batch Wise Confirmation",  # Replace with your actual doctype name
+                    "visual_inspection_report": visual_inspection_report,
+                    "organisation_code": organization_code,
+                    "po_number": po_number,
+                    "item_code": item_code,
+                    "sub_inventory": sub_inventory,
+                    "bin_no": bin_no,
+                    "batch_no": batch_no,
+                    "qty": qty,
+                    "process_flag": process_flag,
+                    "error_message": error_message,
+                    "rec_entry_date": rec_entry_date
+                })
+                # Insert the document into the database
+                doc.insert()
+                frappe.db.commit()
+                return api_response(status=True,data=doc,message="Successfully Created Document",status_code=200)
+            except Exception as e:
+                    frappe.db.rollback()
+                    return api_response(status=False,data='',message="Operation Failed",status_code=500)
+
+            
+            
+            

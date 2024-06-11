@@ -208,3 +208,91 @@ def getAllSalesReturn(timestamp="",limit=50,offset=0):
                         
    
 
+#!==============================================================>
+
+@frappe.whitelist(allow_guest=False,methods=["POST"])
+def create_delivery_note_confirmation(
+                        delivery_note="",
+                        dispatch_order_date="",
+                        dispatch_order_number="",
+                        customer_code="",
+                        item_code="",
+                        batch_no="",
+                        org_code="",
+                        bin_code="",
+                        dispatch_qty="",
+                        process_flag="",
+                        error_desc="",
+                        sub_inventory=""
+                      ):
+            
+            
+            if delivery_note=="":
+                return api_response(status=True, data=[], message="Enter Delivery Note", status_code=400)
+            if dispatch_order_number=="":
+                return api_response(status=True, data=[], message="Enter Dispatch Order Number", status_code=400)
+            if customer_code=="":
+                return api_response(status=True, data=[], message="Enter Item Code", status_code=400)
+            if sub_inventory=="":
+                return api_response(status=True, data=[], message="Enter Sub Inventory", status_code=400)
+            if org_code=="":
+                return api_response(status=True, data=[], message="Enter Organization Code", status_code=400)
+            if bin_code=="":
+                return api_response(status=True, data=[], message="Enter Bin No", status_code=400)
+            if batch_no=="":
+                return api_response(status=True, data=[], message="Enter Batch No", status_code=400)
+            if dispatch_qty=="":
+                return api_response(status=True, data=[], message="Enter Qty", status_code=400)
+            if process_flag=="":
+                return api_response(status=True, data=[], message="Enter Process Flag", status_code=400)
+            if dispatch_order_date=="":
+                return api_response(status=True, data=[], message="Enter Rec Entry Date", status_code=400)
+            try:
+                dispatch_qty = int(dispatch_qty)
+            except:
+                return api_response(status=False, data=[], message="Please Enter Proper DispatchQty", status_code=400)
+            try:
+                dispatch_order_date = datetime.strptime(dispatch_order_date, '%Y-%m-%d')
+            except:
+                return api_response(status=False, data=[], message="Please Enter Proper Dispatch Order Date", status_code=400)
+            #!================================================================================================================>
+            if not frappe.db.exists("Delivery Note",delivery_note):
+                return api_response(status=False, data=[], message="Delivery Note Does Not Exist", status_code=400)
+            if not frappe.db.exists("Customer",customer_code):
+                return api_response(status=False, data=[], message="Customer Does Not Exist", status_code=400)
+            if not frappe.db.exists("Item",item_code):
+                return api_response(status=False, data=[], message="Item Does Not Exist", status_code=400)
+            #!================================================================================================================>
+            try:
+       
+                doc = frappe.get_doc({
+                            "doctype": "confirm Delivery Note Item Wise Batch Wise",
+                            "delivery_note": delivery_note,
+                            "dispatch_order_date": dispatch_order_date,
+                            "dispatch_order_number": dispatch_order_number,
+                            "customer_code": customer_code,
+                            "item_code": item_code,
+                            "batch_no": batch_no,
+                            "org_code": org_code,
+                            "bin_code": bin_code,
+                            "subinventory": sub_inventory,
+                            "dispatch_qty": dispatch_qty,
+                            "process_flag": process_flag,
+                            "error_desc": error_desc
+                        })
+                doc.insert()
+                frappe.db.commit()
+                return api_response(status=True,data=doc,message="Successfully Created Document",status_code=200)
+            except Exception as e:
+                    frappe.db.rollback()
+                    return api_response(status=False,data='',message="Operation Failed",status_code=500)
+
+            
+            
+            
+            
+            
+            
+
+    
+        

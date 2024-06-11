@@ -1,0 +1,133 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:confirm-Delivery-Note-Item-Wise-Batch-Wise-{######}",
+ "creation": "2024-06-11 13:48:13.661943",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "delivery_note",
+  "dispatch_order_date",
+  "dispatch_order_number",
+  "customer_code",
+  "customer_name",
+  "data_kbhg",
+  "item_code",
+  "item_name",
+  "batch_no",
+  "org_code",
+  "bin_code",
+  "subinventory",
+  "dipatch_qty",
+  "process_flag",
+  "error_desc"
+ ],
+ "fields": [
+  {
+   "fieldname": "delivery_note",
+   "fieldtype": "Link",
+   "label": "Delivery Note",
+   "options": "Delivery Note"
+  },
+  {
+   "fieldname": "dispatch_order_number",
+   "fieldtype": "Data",
+   "label": "Dispatch Order Number"
+  },
+  {
+   "fieldname": "customer_code",
+   "fieldtype": "Link",
+   "label": "Customer Code",
+   "options": "Customer"
+  },
+  {
+   "fetch_from": "customer_code.customer_name",
+   "fieldname": "customer_name",
+   "fieldtype": "Data",
+   "label": "Customer Name"
+  },
+  {
+   "fetch_from": "customer_code.territory",
+   "fieldname": "data_kbhg",
+   "fieldtype": "Data",
+   "label": "Customer Location"
+  },
+  {
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "label": "Item Code",
+   "options": "Item"
+  },
+  {
+   "fetch_from": "item_code.item_name",
+   "fieldname": "item_name",
+   "fieldtype": "Data",
+   "label": "Item Name"
+  },
+  {
+   "fieldname": "batch_no",
+   "fieldtype": "Data",
+   "label": "Batch No"
+  },
+  {
+   "fieldname": "org_code",
+   "fieldtype": "Data",
+   "label": "Org Code"
+  },
+  {
+   "fieldname": "bin_code",
+   "fieldtype": "Data",
+   "label": "Bin Code"
+  },
+  {
+   "fieldname": "subinventory",
+   "fieldtype": "Data",
+   "label": "SubInventory"
+  },
+  {
+   "fieldname": "dipatch_qty",
+   "fieldtype": "Float",
+   "label": "Dispatch Qty"
+  },
+  {
+   "fieldname": "process_flag",
+   "fieldtype": "Data",
+   "label": "Process Flag"
+  },
+  {
+   "fieldname": "error_desc",
+   "fieldtype": "Text",
+   "label": "Error Desc"
+  },
+  {
+   "fieldname": "dispatch_order_date",
+   "fieldtype": "Data",
+   "label": "Dispatch Order Date"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-06-11 14:17:02.648377",
+ "modified_by": "Administrator",
+ "module": "MedTech-BPA",
+ "name": "confirm Delivery Note Item Wise Batch Wise",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

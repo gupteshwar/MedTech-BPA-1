@@ -1,0 +1,119 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:Purchase-Receipt-Confirmation-{#####}",
+ "creation": "2024-06-11 10:00:03.656181",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "visual_inspection_report",
+  "organisation_code",
+  "po_number",
+  "item_code",
+  "item_description",
+  "unit_of_measure",
+  "sub_inventory",
+  "bin_no",
+  "batch_no",
+  "qty",
+  "process_flag",
+  "error_message",
+  "rec_entry_date"
+ ],
+ "fields": [
+  {
+   "fieldname": "visual_inspection_report",
+   "fieldtype": "Link",
+   "label": "Visual Inspection Report",
+   "options": "Purchase Receipt"
+  },
+  {
+   "fieldname": "organisation_code",
+   "fieldtype": "Data",
+   "label": "Organisation Code"
+  },
+  {
+   "fieldname": "po_number",
+   "fieldtype": "Data",
+   "label": "PO Number"
+  },
+  {
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "label": "Item Code",
+   "options": "Item"
+  },
+  {
+   "fetch_from": "item_code.description",
+   "fieldname": "item_description",
+   "fieldtype": "Read Only",
+   "label": "Item Description"
+  },
+  {
+   "fetch_from": "item_code.purchase_uom",
+   "fieldname": "unit_of_measure",
+   "fieldtype": "Data",
+   "label": "Unit of Measure"
+  },
+  {
+   "fieldname": "sub_inventory",
+   "fieldtype": "Data",
+   "label": "Sub Inventory"
+  },
+  {
+   "fieldname": "bin_no",
+   "fieldtype": "Data",
+   "label": "Bin No"
+  },
+  {
+   "fieldname": "batch_no",
+   "fieldtype": "Data",
+   "label": "Batch No"
+  },
+  {
+   "fieldname": "qty",
+   "fieldtype": "Float",
+   "label": "Qty"
+  },
+  {
+   "fieldname": "process_flag",
+   "fieldtype": "Data",
+   "label": "PROCESS FLAG"
+  },
+  {
+   "fieldname": "error_message",
+   "fieldtype": "Text",
+   "label": "Error Message"
+  },
+  {
+   "fieldname": "rec_entry_date",
+   "fieldtype": "Data",
+   "label": "REC ENTRY DATE"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-06-11 10:23:21.682541",
+ "modified_by": "Administrator",
+ "module": "MedTech-BPA",
+ "name": "Purchase Receipt Item Wise Batch Wise Confirmation",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
