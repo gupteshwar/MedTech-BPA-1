@@ -4,7 +4,7 @@ from datetime import datetime
 #!Paginated Get Customer Details API
 @frappe.whitelist(allow_guest=False,methods=["GET"])
 def getAllDeliveryNote(timestamp="",limit=50,offset=0):
-
+    #!STANDARD VALIDATION================================================================>
     #TODO 1: limit offset int format check
     try:
         limit = int(limit)
@@ -43,7 +43,7 @@ def getAllDeliveryNote(timestamp="",limit=50,offset=0):
             limit=limit,
             order_by='-modified'
         )
-    #!add customer_details
+    #!2 add customer_details
     for delivery_note in delivery_note_list:
 
         #!==========================================
@@ -60,14 +60,47 @@ def getAllDeliveryNote(timestamp="",limit=50,offset=0):
         #!==========================================
         #!add child table items 
         delivery_note_id=delivery_note["id"]
-        
         delivery_note_child_table=frappe.db.get_all("Delivery Note Item",filters={
             "parent": delivery_note_id},
         fields=["item_code","item_name","description",
                 "uom","qty","serial_no","serial_and_batch_bundle","batch_no","against_sales_invoice"
                 ]
         )
+        #!===========================
+        #! Adding Item Child Table  and batch details
+   
+        for delivery_note_items in delivery_note_child_table:
+            batch_id=delivery_note_items["batch_no"]
+            if batch_id is not None:
+                batch_details=frappe.db.get_all("Batch",filters={
+                    "name":batch_id
+                },fields=["name","qty_to_produce","produced_qty","expiry_date","manufacturing_date"])
+                if len(batch_details) > 0:
+                    batch_details=batch_details[0]
+                    qty_to_produce =batch_details["qty_to_produce"]
+                    produced_qty=batch_details["produced_qty"]
+                    expiry_date=batch_details["expiry_date"]
+                    manufacturing_date=batch_details["manufacturing_date"]
+
+                    delivery_note_items["qty_to_produce"]=qty_to_produce
+                    delivery_note_items["produced_qty"]=produced_qty
+                    delivery_note_items["expiry_date"]=expiry_date
+                    delivery_note_items["manufacturing_date"]=manufacturing_date
+                else:
+                    delivery_note_items["qty_to_produce"]=0
+                    delivery_note_items["produced_qty"]=0
+                    delivery_note_items["expiry_date"]=None
+                    delivery_note_items["manufacturing_date"]=None
+
+            else:
+                delivery_note_items["qty_to_produce"]=0
+                delivery_note_items["produced_qty"]=0
+                delivery_note_items["expiry_date"]=None
+                delivery_note_items["manufacturing_date"]=None
         delivery_note["item"]=delivery_note_child_table
+
+        #!Adding item stock
+
         #!adding pick list 
         pick_list_id=delivery_note["pick_list"]
         pick_list_item_details=frappe.db.get_all("Pick List Item",filters={
@@ -171,6 +204,33 @@ def getAllSalesReturn(timestamp="",limit=50,offset=0):
                 "uom","qty","serial_no","serial_and_batch_bundle","batch_no","against_sales_invoice"
                 ]
         )
+        for delivery_note_items in delivery_note_child_table:
+            batch_id=delivery_note_items["batch_no"]
+            if batch_id is not None:
+                batch_details=frappe.db.get_all("Batch",filters={
+                    "name":batch_id
+                },fields=["name","qty_to_produce","produced_qty","expiry_date","manufacturing_date"])
+                if len(batch_details) > 0:
+                    batch_details=batch_details[0]
+                    qty_to_produce =batch_details["qty_to_produce"]
+                    produced_qty=batch_details["produced_qty"]
+                    expiry_date=batch_details["expiry_date"]
+                    manufacturing_date=batch_details["manufacturing_date"]
+
+                    delivery_note_items["qty_to_produce"]=qty_to_produce
+                    delivery_note_items["produced_qty"]=produced_qty
+                    delivery_note_items["expiry_date"]=expiry_date
+                    delivery_note_items["manufacturing_date"]=manufacturing_date
+                else:
+                    delivery_note_items["qty_to_produce"]=0
+                    delivery_note_items["produced_qty"]=0
+                    delivery_note_items["expiry_date"]=None
+                    delivery_note_items["manufacturing_date"]=None
+            else:
+                delivery_note_items["qty_to_produce"]=0
+                delivery_note_items["produced_qty"]=0
+                delivery_note_items["expiry_date"]=None
+                delivery_note_items["manufacturing_date"]=None
         delivery_note["item"]=delivery_note_child_table
         #!adding pick list 
         pick_list_id=delivery_note["pick_list"]

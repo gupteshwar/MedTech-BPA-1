@@ -5,6 +5,7 @@ from datetime import datetime
 @frappe.whitelist(allow_guest=False,methods=["GET"])
 def getAllpurchaseReceipt(timestamp="",limit=50,offset=0):
 
+    #!STANDARD VALIDATIONS 1================================================================
     #TODO 1: limit offset int format check
     try:
         limit = int(limit)
@@ -22,8 +23,9 @@ def getAllpurchaseReceipt(timestamp="",limit=50,offset=0):
         timestamp_datetime=datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
     except Exception as e:
         return api_response(status=False, data=[], message=f"Please Enter a valid timestamp {e}", status_code=400)
-
+    #!=================================================================================================
     
+    #!2 GETTING PURCHASE RECEIPT
     purchase_receipt_list = frappe.get_all("Purchase Receipt",
         fields=["name as id",
                 "title as title",
@@ -42,6 +44,7 @@ def getAllpurchaseReceipt(timestamp="",limit=50,offset=0):
             limit=limit,
             order_by='-modified'
         )
+    #! Adding Item Child Table  and batch details
     for purchase_receipt in purchase_receipt_list:
         purchase_receipt_id=purchase_receipt["id"]
         purchase_receipt_child_table=frappe.db.get_all("Purchase Receipt Item",filters={
@@ -52,9 +55,36 @@ def getAllpurchaseReceipt(timestamp="",limit=50,offset=0):
                 "batch_no"
                 ]
         )
+        for purchase_receipt_child in purchase_receipt_child_table:
+            batch_id=purchase_receipt_child["batch_no"]
+            if batch_id is not None:
+                batch_details=frappe.db.get_all("Batch",filters={
+                    "name":batch_id
+                },fields=["name","qty_to_produce","produced_qty","expiry_date","manufacturing_date"])
+                if len(batch_details) > 0:
+                    batch_details=batch_details[0]
+                    qty_to_produce =batch_details["qty_to_produce"]
+                    produced_qty=batch_details["produced_qty"]
+                    expiry_date=batch_details["expiry_date"]
+                    manufacturing_date=batch_details["manufacturing_date"]
+
+                    purchase_receipt_child["qty_to_produce"]=qty_to_produce
+                    purchase_receipt_child["produced_qty"]=produced_qty
+                    purchase_receipt_child["expiry_date"]=expiry_date
+                    purchase_receipt_child["manufacturing_date"]=manufacturing_date
+                else:
+                    purchase_receipt_child["qty_to_produce"]=0
+                    purchase_receipt_child["produced_qty"]=0
+                    purchase_receipt_child["expiry_date"]=None
+                    purchase_receipt_child["manufacturing_date"]=None
+            else:
+                    purchase_receipt_child["qty_to_produce"]=0
+                    purchase_receipt_child["produced_qty"]=0
+                    purchase_receipt_child["expiry_date"]=None
+                    purchase_receipt_child["manufacturing_date"]=None
         purchase_receipt["item"]=purchase_receipt_child_table
 
-        
+    #!============================================================
     if len(purchase_receipt_list)==0:
         return api_response(status=True, data=[], message="Empty Content", status_code=204)
     else:
@@ -119,7 +149,48 @@ def getAllpurchaseReturn(timestamp="",limit=50,offset=0):
         )
         purchase_receipt["item"]=purchase_receipt_child_table
 
-        
+    #! Adding Item Child Table  and batch details
+    for purchase_receipt in purchase_receipt_list:
+        purchase_receipt_id=purchase_receipt["id"]
+        purchase_receipt_child_table=frappe.db.get_all("Purchase Receipt Item",filters={
+            "parent": purchase_receipt_id},
+        fields=["item_code","supplier_part_no","item_name","description",
+                "uom","received_qty","qty","rejected_qty","serial_no",
+                "serial_and_batch_bundle","rejected_serial_and_batch_bundle",
+                "batch_no"
+                ]
+        )
+        for purchase_receipt_child in purchase_receipt_child_table:
+            batch_id=purchase_receipt_child["batch_no"]
+            if batch_id is not None:
+                batch_details=frappe.db.get_all("Batch",filters={
+                    "name":batch_id
+                },fields=["name","qty_to_produce","produced_qty","expiry_date","manufacturing_date"])
+                if len(batch_details) > 0:
+                    batch_details=batch_details[0]
+                    qty_to_produce =batch_details["qty_to_produce"]
+                    produced_qty=batch_details["produced_qty"]
+                    expiry_date=batch_details["expiry_date"]
+                    manufacturing_date=batch_details["manufacturing_date"]
+
+                    purchase_receipt_child["qty_to_produce"]=qty_to_produce
+                    purchase_receipt_child["produced_qty"]=produced_qty
+                    purchase_receipt_child["expiry_date"]=expiry_date
+                    purchase_receipt_child["manufacturing_date"]=manufacturing_date
+                else:
+                    purchase_receipt_child["qty_to_produce"]=0
+                    purchase_receipt_child["produced_qty"]=0
+                    purchase_receipt_child["expiry_date"]=None
+                    purchase_receipt_child["manufacturing_date"]=None
+            else:
+                    purchase_receipt_child["qty_to_produce"]=0
+                    purchase_receipt_child["produced_qty"]=0
+                    purchase_receipt_child["expiry_date"]=None
+                    purchase_receipt_child["manufacturing_date"]=None
+        purchase_receipt["item"]=purchase_receipt_child_table
+
+                
+
     if len(purchase_receipt_list)==0:
         return api_response(status=True, data=[], message="Empty Content", status_code=204)
     else:
