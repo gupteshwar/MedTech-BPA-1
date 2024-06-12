@@ -5,9 +5,6 @@
   "icon": "",
   "modified": "2021-07-30 14:16:14.122029",
   "name": "Stock Transfer",
-  "parent": null,
-  "parentfield": null,
-  "parenttype": null,
   "style": "",
   "workflow_state_name": "Stock Transfer"
  },
@@ -17,9 +14,6 @@
   "icon": "",
   "modified": "2021-05-20 09:52:37.417799",
   "name": "AKSHAY",
-  "parent": null,
-  "parentfield": null,
-  "parenttype": null,
   "style": "",
   "workflow_state_name": "AKSHAY"
  },
@@ -29,9 +23,6 @@
   "icon": "question-sign",
   "modified": "2021-01-04 17:07:35.313429",
   "name": "Pending",
-  "parent": null,
-  "parentfield": null,
-  "parenttype": null,
   "style": "",
   "workflow_state_name": "Pending"
  },
@@ -41,9 +32,6 @@
   "icon": "ok-sign",
   "modified": "2021-01-14 17:35:41.992267",
   "name": "Approved",
-  "parent": null,
-  "parentfield": null,
-  "parenttype": null,
   "style": "Success",
   "workflow_state_name": "Approved"
  },
@@ -53,9 +41,6 @@
   "icon": "remove",
   "modified": "2021-01-04 17:07:35.532952",
   "name": "Rejected",
-  "parent": null,
-  "parentfield": null,
-  "parenttype": null,
   "style": "Danger",
   "workflow_state_name": "Rejected"
  },
@@ -65,9 +50,6 @@
   "icon": "",
   "modified": "2021-01-07 16:29:05.012445",
   "name": "Send for QC",
-  "parent": null,
-  "parentfield": null,
-  "parenttype": null,
   "style": "",
   "workflow_state_name": "Send for QC"
  },
@@ -77,9 +59,6 @@
   "icon": "",
   "modified": "2021-01-07 16:34:39.638300",
   "name": "Submitted",
-  "parent": null,
-  "parentfield": null,
-  "parenttype": null,
   "style": "",
   "workflow_state_name": "Submitted"
  },
@@ -89,9 +68,6 @@
   "icon": "",
   "modified": "2021-01-14 17:39:11.499293",
   "name": "Cancelled",
-  "parent": null,
-  "parentfield": null,
-  "parenttype": null,
   "style": "Danger",
   "workflow_state_name": "Cancelled"
  },
@@ -101,9 +77,6 @@
   "icon": "",
   "modified": "2021-01-14 17:35:09.634165",
   "name": "For QC",
-  "parent": null,
-  "parentfield": null,
-  "parenttype": null,
   "style": "Primary",
   "workflow_state_name": "For QC"
  },
@@ -113,9 +86,6 @@
   "icon": "",
   "modified": "2021-01-07 16:28:32.054960",
   "name": "Draft",
-  "parent": null,
-  "parentfield": null,
-  "parenttype": null,
   "style": "",
   "workflow_state_name": "Draft"
  },
@@ -125,9 +95,6 @@
   "icon": "",
   "modified": "2021-02-25 12:55:38.221062",
   "name": "Pending For QC",
-  "parent": null,
-  "parentfield": null,
-  "parenttype": null,
   "style": "",
   "workflow_state_name": "Pending For QC"
  },
@@ -137,9 +104,6 @@
   "icon": "",
   "modified": "2021-03-17 10:32:30.759212",
   "name": "SO In-Process",
-  "parent": null,
-  "parentfield": null,
-  "parenttype": null,
   "style": "",
   "workflow_state_name": "SO In-Process"
  },
@@ -149,9 +113,6 @@
   "icon": "",
   "modified": "2021-03-17 10:32:46.178692",
   "name": "PI Pending",
-  "parent": null,
-  "parentfield": null,
-  "parenttype": null,
   "style": "",
   "workflow_state_name": "PI Pending"
  },
@@ -161,9 +122,6 @@
   "icon": "",
   "modified": "2021-03-17 10:33:00.261953",
   "name": "Payment Pending",
-  "parent": null,
-  "parentfield": null,
-  "parenttype": null,
   "style": "",
   "workflow_state_name": "Payment Pending"
  },
@@ -173,9 +131,6 @@
   "icon": "",
   "modified": "2021-03-18 09:03:36.216288",
   "name": "Pending Dispatch",
-  "parent": null,
-  "parentfield": null,
-  "parenttype": null,
   "style": "",
   "workflow_state_name": "Pending Dispatch"
  },
@@ -185,9 +140,6 @@
   "icon": "",
   "modified": "2021-04-06 16:03:47.013489",
   "name": "Pending For Bill",
-  "parent": null,
-  "parentfield": null,
-  "parenttype": null,
   "style": "",
   "workflow_state_name": "Pending For Bill"
  },
@@ -197,9 +149,6 @@
   "icon": "",
   "modified": "2021-04-06 16:04:03.568403",
   "name": "Completed",
-  "parent": null,
-  "parentfield": null,
-  "parenttype": null,
   "style": "",
   "workflow_state_name": "Completed"
  },
@@ -209,9 +158,6 @@
   "icon": "",
   "modified": "2021-04-06 20:08:56.017848",
   "name": "Modify",
-  "parent": null,
-  "parentfield": null,
-  "parenttype": null,
   "style": "",
   "workflow_state_name": "Modify"
  },
@@ -221,9 +167,6 @@
   "icon": "",
   "modified": "2021-04-06 20:16:47.814530",
   "name": "Modified",
-  "parent": null,
-  "parentfield": null,
-  "parenttype": null,
   "style": "",
   "workflow_state_name": "Modified"
  },
@@ -233,9 +176,6 @@
   "icon": "",
   "modified": "2021-01-14 17:35:33.073623",
   "name": "For Receipt",
-  "parent": null,
-  "parentfield": null,
-  "parenttype": null,
   "style": "Info",
   "workflow_state_name": "For Receipt"
  }

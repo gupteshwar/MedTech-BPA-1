@@ -7,13 +7,11 @@
   "modified": "2021-07-30 14:18:53.617828",
   "name": "Purchase Receipt QC 2",
   "override_status": 0,
-  "parent": null,
-  "parentfield": null,
-  "parenttype": null,
   "send_email_alert": 0,
   "states": [
    {
     "allow_edit": "Purchase User",
+    "avoid_status_override": 0,
     "doc_status": "0",
     "is_optional_state": 0,
     "message": null,
@@ -23,10 +21,12 @@
     "parenttype": "Workflow",
     "state": "Draft",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    },
    {
     "allow_edit": "Purchase User",
+    "avoid_status_override": 0,
     "doc_status": "0",
     "is_optional_state": 0,
     "message": null,
@@ -36,10 +36,12 @@
     "parenttype": "Workflow",
     "state": "Pending For QC",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    },
    {
     "allow_edit": "Purchase Manager",
+    "avoid_status_override": 0,
     "doc_status": "1",
     "is_optional_state": 0,
     "message": null,
@@ -49,10 +51,12 @@
     "parenttype": "Workflow",
     "state": "Approved",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    },
    {
     "allow_edit": "Purchase Manager",
+    "avoid_status_override": 0,
     "doc_status": "0",
     "is_optional_state": 0,
     "message": null,
@@ -62,10 +66,12 @@
     "parenttype": "Workflow",
     "state": "Rejected",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    },
    {
     "allow_edit": "Purchase User",
+    "avoid_status_override": 0,
     "doc_status": "1",
     "is_optional_state": 0,
     "message": null,
@@ -75,10 +81,12 @@
     "parenttype": "Workflow",
     "state": "Approved",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    },
    {
     "allow_edit": "Purchase User",
+    "avoid_status_override": 0,
     "doc_status": "2",
     "is_optional_state": 0,
     "message": null,
@@ -88,10 +96,12 @@
     "parenttype": "Workflow",
     "state": "Cancelled",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    },
    {
     "allow_edit": "Purchase User",
+    "avoid_status_override": 0,
     "doc_status": "0",
     "is_optional_state": 0,
     "message": null,
@@ -101,10 +111,12 @@
     "parenttype": "Workflow",
     "state": "Stock Transfer",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    },
    {
     "allow_edit": "Purchase User",
+    "avoid_status_override": 0,
     "doc_status": "0",
     "is_optional_state": 0,
     "message": null,
@@ -114,7 +126,8 @@
     "parenttype": "Workflow",
     "state": "Send for QC",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    }
   ],
   "transitions": [
@@ -127,7 +140,8 @@
     "parent": "Purchase Receipt QC 2",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "state": "Draft"
+    "state": "Draft",
+    "workflow_builder_id": null
    },
    {
     "action": "QC Completed",
@@ -138,9 +152,11 @@
     "parent": "Purchase Receipt QC 2",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "state": "Send for QC"
+    "state": "Send for QC",
+    "workflow_builder_id": null
    }
   ],
+  "workflow_data": null,
   "workflow_name": "Purchase Receipt QC 2",
   "workflow_state_field": "workflow_state"
  },
@@ -152,13 +168,11 @@
   "modified": "2021-12-29 16:38:47.941182",
   "name": "Purchase Receipt QC",
   "override_status": 0,
-  "parent": null,
-  "parentfield": null,
-  "parenttype": null,
   "send_email_alert": 0,
   "states": [
    {
     "allow_edit": "Purchase User",
+    "avoid_status_override": 0,
     "doc_status": "0",
     "is_optional_state": 0,
     "message": null,
@@ -168,10 +182,12 @@
     "parenttype": "Workflow",
     "state": "Draft",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    },
    {
     "allow_edit": "Purchase User",
+    "avoid_status_override": 0,
     "doc_status": "0",
     "is_optional_state": 0,
     "message": null,
@@ -181,10 +197,12 @@
     "parenttype": "Workflow",
     "state": "Pending For QC",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    },
    {
     "allow_edit": "Purchase Manager",
+    "avoid_status_override": 0,
     "doc_status": "0",
     "is_optional_state": 0,
     "message": null,
@@ -194,10 +212,12 @@
     "parenttype": "Workflow",
     "state": "For Receipt",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    },
    {
     "allow_edit": "Purchase Manager",
+    "avoid_status_override": 0,
     "doc_status": "1",
     "is_optional_state": 0,
     "message": null,
@@ -207,10 +227,12 @@
     "parenttype": "Workflow",
     "state": "Approved",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    },
    {
     "allow_edit": "Purchase Manager",
+    "avoid_status_override": 0,
     "doc_status": "0",
     "is_optional_state": 0,
     "message": null,
@@ -220,10 +242,12 @@
     "parenttype": "Workflow",
     "state": "Rejected",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    },
    {
     "allow_edit": "Purchase User",
+    "avoid_status_override": 0,
     "doc_status": "1",
     "is_optional_state": 0,
     "message": null,
@@ -233,10 +257,12 @@
     "parenttype": "Workflow",
     "state": "Approved",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    },
    {
     "allow_edit": "Purchase User",
+    "avoid_status_override": 0,
     "doc_status": "2",
     "is_optional_state": 0,
     "message": null,
@@ -246,7 +272,8 @@
     "parenttype": "Workflow",
     "state": "Cancelled",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    }
   ],
   "transitions": [
@@ -259,7 +286,8 @@
     "parent": "Purchase Receipt QC",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "state": "Draft"
+    "state": "Draft",
+    "workflow_builder_id": null
    },
    {
     "action": "QC Completed",
@@ -270,7 +298,8 @@
     "parent": "Purchase Receipt QC",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "state": "Pending For QC"
+    "state": "Pending For QC",
+    "workflow_builder_id": null
    },
    {
     "action": "Approve",
@@ -281,7 +310,8 @@
     "parent": "Purchase Receipt QC",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "state": "For Receipt"
+    "state": "For Receipt",
+    "workflow_builder_id": null
    },
    {
     "action": "Reject",
@@ -292,7 +322,8 @@
     "parent": "Purchase Receipt QC",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "state": "For Receipt"
+    "state": "For Receipt",
+    "workflow_builder_id": null
    },
    {
     "action": "Send for Approval",
@@ -303,7 +334,8 @@
     "parent": "Purchase Receipt QC",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "state": "Rejected"
+    "state": "Rejected",
+    "workflow_builder_id": null
    },
    {
     "action": "Approve",
@@ -314,7 +346,8 @@
     "parent": "Purchase Receipt QC",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "state": "Draft"
+    "state": "Draft",
+    "workflow_builder_id": null
    },
    {
     "action": "Cancel",
@@ -325,9 +358,11 @@
     "parent": "Purchase Receipt QC",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "state": "Approved"
+    "state": "Approved",
+    "workflow_builder_id": null
    }
   ],
+  "workflow_data": null,
   "workflow_name": "Purchase Receipt QC",
   "workflow_state_field": "workflow_state"
  },
@@ -339,13 +374,11 @@
   "modified": "2021-04-06 20:20:17.993594",
   "name": "Sales Order",
   "override_status": 0,
-  "parent": null,
-  "parentfield": null,
-  "parenttype": null,
   "send_email_alert": 0,
   "states": [
    {
     "allow_edit": "Sales Executor",
+    "avoid_status_override": 0,
     "doc_status": "0",
     "is_optional_state": 0,
     "message": null,
@@ -355,10 +388,12 @@
     "parenttype": "Workflow",
     "state": "SO In-Process",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    },
    {
     "allow_edit": "Distributor",
+    "avoid_status_override": 0,
     "doc_status": "0",
     "is_optional_state": 0,
     "message": null,
@@ -368,10 +403,12 @@
     "parenttype": "Workflow",
     "state": "SO In-Process",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    },
    {
     "allow_edit": "Sales Manager",
+    "avoid_status_override": 0,
     "doc_status": "0",
     "is_optional_state": 0,
     "message": null,
@@ -381,10 +418,12 @@
     "parenttype": "Workflow",
     "state": "SO In-Process",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    },
    {
     "allow_edit": "Sales Executor",
+    "avoid_status_override": 0,
     "doc_status": "0",
     "is_optional_state": 0,
     "message": null,
@@ -394,10 +433,12 @@
     "parenttype": "Workflow",
     "state": "Modified",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    },
    {
     "allow_edit": "Sales Manager",
+    "avoid_status_override": 0,
     "doc_status": "0",
     "is_optional_state": 0,
     "message": null,
@@ -407,10 +448,12 @@
     "parenttype": "Workflow",
     "state": "Modified",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    },
    {
     "allow_edit": "Sales Executor",
+    "avoid_status_override": 0,
     "doc_status": "1",
     "is_optional_state": 0,
     "message": null,
@@ -420,10 +463,12 @@
     "parenttype": "Workflow",
     "state": "PI Pending",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    },
    {
     "allow_edit": "Sales Manager",
+    "avoid_status_override": 0,
     "doc_status": "0",
     "is_optional_state": 0,
     "message": null,
@@ -433,10 +478,12 @@
     "parenttype": "Workflow",
     "state": "PI Pending",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    },
    {
     "allow_edit": "Sales Executor",
+    "avoid_status_override": 0,
     "doc_status": "1",
     "is_optional_state": 0,
     "message": null,
@@ -446,10 +493,12 @@
     "parenttype": "Workflow",
     "state": "Payment Pending",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    },
    {
     "allow_edit": "Sales Manager",
+    "avoid_status_override": 0,
     "doc_status": "0",
     "is_optional_state": 0,
     "message": null,
@@ -459,10 +508,12 @@
     "parenttype": "Workflow",
     "state": "Payment Pending",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    },
    {
     "allow_edit": "Sales Executor",
+    "avoid_status_override": 0,
     "doc_status": "0",
     "is_optional_state": 0,
     "message": null,
@@ -472,10 +523,12 @@
     "parenttype": "Workflow",
     "state": "Rejected",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    },
    {
     "allow_edit": "Sales Manager",
+    "avoid_status_override": 0,
     "doc_status": "0",
     "is_optional_state": 0,
     "message": null,
@@ -485,10 +538,12 @@
     "parenttype": "Workflow",
     "state": "Rejected",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    },
    {
     "allow_edit": "Sales Manager",
+    "avoid_status_override": 0,
     "doc_status": "1",
     "is_optional_state": 0,
     "message": null,
@@ -498,10 +553,12 @@
     "parenttype": "Workflow",
     "state": "Pending Dispatch",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    },
    {
     "allow_edit": "Sales Executor",
+    "avoid_status_override": 0,
     "doc_status": "1",
     "is_optional_state": 0,
     "message": null,
@@ -511,10 +568,12 @@
     "parenttype": "Workflow",
     "state": "Pending Dispatch",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    },
    {
     "allow_edit": "Sales Manager",
+    "avoid_status_override": 0,
     "doc_status": "1",
     "is_optional_state": 0,
     "message": null,
@@ -524,10 +583,12 @@
     "parenttype": "Workflow",
     "state": "Pending For Bill",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    },
    {
     "allow_edit": "Sales Executor",
+    "avoid_status_override": 0,
     "doc_status": "1",
     "is_optional_state": 0,
     "message": null,
@@ -537,7 +598,8 @@
     "parenttype": "Workflow",
     "state": "Completed",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    }
   ],
   "transitions": [
@@ -550,7 +612,8 @@
     "parent": "Sales Order",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "state": "SO In-Process"
+    "state": "SO In-Process",
+    "workflow_builder_id": null
    },
    {
     "action": "Approve",
@@ -561,7 +624,8 @@
     "parent": "Sales Order",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "state": "SO In-Process"
+    "state": "SO In-Process",
+    "workflow_builder_id": null
    },
    {
     "action": "Send Email",
@@ -572,7 +636,8 @@
     "parent": "Sales Order",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "state": "PI Pending"
+    "state": "PI Pending",
+    "workflow_builder_id": null
    },
    {
     "action": "Send Email",
@@ -583,7 +648,8 @@
     "parent": "Sales Order",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "state": "PI Pending"
+    "state": "PI Pending",
+    "workflow_builder_id": null
    },
    {
     "action": "Reject",
@@ -594,7 +660,8 @@
     "parent": "Sales Order",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "state": "SO In-Process"
+    "state": "SO In-Process",
+    "workflow_builder_id": null
    },
    {
     "action": "Reject",
@@ -605,7 +672,8 @@
     "parent": "Sales Order",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "state": "SO In-Process"
+    "state": "SO In-Process",
+    "workflow_builder_id": null
    },
    {
     "action": "Modify",
@@ -616,7 +684,8 @@
     "parent": "Sales Order",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "state": "SO In-Process"
+    "state": "SO In-Process",
+    "workflow_builder_id": null
    },
    {
     "action": "Approve",
@@ -627,7 +696,8 @@
     "parent": "Sales Order",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "state": "Modified"
+    "state": "Modified",
+    "workflow_builder_id": null
    },
    {
     "action": "Approve",
@@ -638,7 +708,8 @@
     "parent": "Sales Order",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "state": "Rejected"
+    "state": "Rejected",
+    "workflow_builder_id": null
    },
    {
     "action": "Approve",
@@ -649,9 +720,11 @@
     "parent": "Sales Order",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "state": "Rejected"
+    "state": "Rejected",
+    "workflow_builder_id": null
    }
   ],
+  "workflow_data": null,
   "workflow_name": "Sales Order",
   "workflow_state_field": "workflow_state"
  },
@@ -663,13 +736,11 @@
   "modified": "2021-07-15 13:30:02.257236",
   "name": "Purchase Receipt QC1",
   "override_status": 0,
-  "parent": null,
-  "parentfield": null,
-  "parenttype": null,
   "send_email_alert": 0,
   "states": [
    {
     "allow_edit": "Purchase User",
+    "avoid_status_override": 0,
     "doc_status": "0",
     "is_optional_state": 0,
     "message": null,
@@ -679,10 +750,12 @@
     "parenttype": "Workflow",
     "state": "Draft",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    },
    {
     "allow_edit": "Purchase User",
+    "avoid_status_override": 0,
     "doc_status": "0",
     "is_optional_state": 0,
     "message": null,
@@ -692,10 +765,12 @@
     "parenttype": "Workflow",
     "state": "Pending For QC",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    },
    {
     "allow_edit": "Purchase Manager",
+    "avoid_status_override": 0,
     "doc_status": "0",
     "is_optional_state": 0,
     "message": null,
@@ -705,10 +780,12 @@
     "parenttype": "Workflow",
     "state": "For Receipt",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    },
    {
     "allow_edit": "Purchase Manager",
+    "avoid_status_override": 0,
     "doc_status": "1",
     "is_optional_state": 0,
     "message": null,
@@ -718,10 +795,12 @@
     "parenttype": "Workflow",
     "state": "Approved",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    },
    {
     "allow_edit": "Purchase Manager",
+    "avoid_status_override": 0,
     "doc_status": "1",
     "is_optional_state": 0,
     "message": null,
@@ -731,10 +810,12 @@
     "parenttype": "Workflow",
     "state": "Rejected",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    },
    {
     "allow_edit": "Purchase User",
+    "avoid_status_override": 0,
     "doc_status": "1",
     "is_optional_state": 0,
     "message": null,
@@ -744,10 +825,12 @@
     "parenttype": "Workflow",
     "state": "Approved",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    },
    {
     "allow_edit": "Purchase User",
+    "avoid_status_override": 0,
     "doc_status": "2",
     "is_optional_state": 0,
     "message": null,
@@ -757,7 +840,8 @@
     "parenttype": "Workflow",
     "state": "Cancelled",
     "update_field": null,
-    "update_value": null
+    "update_value": null,
+    "workflow_builder_id": null
    }
   ],
   "transitions": [
@@ -770,7 +854,8 @@
     "parent": "Purchase Receipt QC1",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "state": "Draft"
+    "state": "Draft",
+    "workflow_builder_id": null
    },
    {
     "action": "QC Completed",
@@ -781,7 +866,8 @@
     "parent": "Purchase Receipt QC1",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "state": "Pending For QC"
+    "state": "Pending For QC",
+    "workflow_builder_id": null
    },
    {
     "action": "Approve",
@@ -792,7 +878,8 @@
     "parent": "Purchase Receipt QC1",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "state": "For Receipt"
+    "state": "For Receipt",
+    "workflow_builder_id": null
    },
    {
     "action": "Reject",
@@ -803,7 +890,8 @@
     "parent": "Purchase Receipt QC1",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "state": "For Receipt"
+    "state": "For Receipt",
+    "workflow_builder_id": null
    },
    {
     "action": "Approve",
@@ -814,7 +902,8 @@
     "parent": "Purchase Receipt QC1",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "state": "Draft"
+    "state": "Draft",
+    "workflow_builder_id": null
    },
    {
     "action": "Cancel",
@@ -825,9 +914,11 @@
     "parent": "Purchase Receipt QC1",
     "parentfield": "transitions",
     "parenttype": "Workflow",
-    "state": "Approved"
+    "state": "Approved",
+    "workflow_builder_id": null
    }
   ],
+  "workflow_data": null,
   "workflow_name": "Purchase Receipt QC1",
   "workflow_state_field": "workflow_state"
  }
