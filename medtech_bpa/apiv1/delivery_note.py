@@ -101,15 +101,7 @@ def getAllDeliveryNote(timestamp="",limit=50,offset=0):
 
         #!Adding item stock
 
-        #!adding pick list 
-        pick_list_id=delivery_note["pick_list"]
-        pick_list_item_details=frappe.db.get_all("Pick List Item",filters={
-                    "parent":pick_list_id},
-                fields=["item_code","item_name","description","warehouse",
-                        "uom","picked_qty","qty","parent"]
-                )
         
-        delivery_note["pick_list"]=pick_list_item_details
     
       
         
@@ -233,14 +225,8 @@ def getAllSalesReturn(timestamp="",limit=50,offset=0):
                 delivery_note_items["manufacturing_date"]=None
         delivery_note["item"]=delivery_note_child_table
         #!adding pick list 
-        pick_list_id=delivery_note["pick_list"]
-        pick_list_item_details=frappe.db.get_all("Pick List Item",filters={
-                    "parent":pick_list_id},
-                fields=["item_code","item_name","description","warehouse",
-                        "uom","picked_qty","qty","parent"]
-                )
+
         
-        delivery_note["pick_list"]=pick_list_item_details
     
       
         
