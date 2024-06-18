@@ -35,7 +35,8 @@ def getAllStockEntryMaterialTransferForManufacturing(timestamp="",limit=50,offse
                 'purpose':"Material Transfer for Manufacture"
             },
         limit=limit,
-        order_by='-modified'
+        order_by='-modified',
+        start=offset
         )
     #!Adding Item and Batch Detail
     for stock_entry in stock_entry_list:
@@ -210,3 +211,45 @@ def create_stock_entry_manufacturing(data):
         return api_response(status_code=400, message=f"Operation error: {e}", data=[], status=False)
     
 #!=========================================================================================================>
+#!Get All Work Orders
+#!=================================================================================>
+@frappe.whitelist(allow_guest=False,methods=["GET"])
+def getAllWorkOrders(timestamp="",limit=10,offset=0):
+
+    #TODO 1: limit offset int format check
+    try:
+        limit = int(limit)
+        offset = int(offset)
+    except:
+        return api_response(status=False, data=[], message="Please Enter Proper Limit and Offset", status_code=400)
+    #!limit and offset upper limit validation
+    if limit > 200 or limit < 0 or offset<0:
+        return api_response(status=False, data=[], message="Limit exceeded 500", status_code=400)
+    #!timestamp non empty validation
+    if timestamp is None or timestamp =="":
+        return api_response(status=False, data=[], message="Please Enter a timestamp", status_code=400)
+    #!timestamp format validation
+    try:
+        timestamp_datetime=datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
+    except Exception as e:
+        return api_response(status=False, data=[], message=f"Please Enter a valid timestamp {e}", status_code=400)
+
+    
+    work_order_list = frappe.get_all("Work Order",
+        fields=["*"],
+        filters={
+                'modified':['>',timestamp],
+                },
+        limit=limit,
+        order_by='-modified',
+        start=offset
+        )
+    # #!Adding Item and Batch Detail
+    for work_order in work_order_list:
+        parent_id=work_order.get('name')
+        work_order_item=frappe.db.get_all("Work Order Item",filters={'parent':parent_id},fields=["*"])
+        work_order["required_items"]=work_order_item     
+    if len(work_order_list)==0:
+        return api_response(status=True, data=[], message="Empty Content", status_code=204)
+    else:
+        return api_response(status=True, data=work_order_list, message="Fetched Work Order List Successfully", status_code=200)

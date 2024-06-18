@@ -1,74 +1,150 @@
 import frappe
 from ..api_utils.response import api_response
 from datetime import datetime
-@frappe.whitelist(allow_guest=False)
-def create_quality_inspection(data):
+#!Paginated Get Customer Details API
+@frappe.whitelist(allow_guest=False,methods=["GET"])
+def getAllPickList(timestamp="",limit=50,offset=0):
+    #!STANDARD VALIDATION================================================================>
+    #TODO 1: limit offset int format check
     try:
-        data = frappe.parse_json(data)
-        
-        # Validate Purchase Receipt
-        purchase_receipt = data.get("purchase_receipt")
-        if not purchase_receipt :
-           return api_response(status_code=400, message="Purchase Receipt is required", data=[], status=False)
-        if not frappe.db.exists("Purchase Receipt", purchase_receipt):
-           return api_response(status_code=400, message="Purchase Receipt ID invalid", data=[], status=False)
-        
-        # Validate required fields
-        inspected_by = data.get("inspected_by")
-        if not inspected_by:
-            return api_response(status_code=400, message="Inspector name is required", data=[], status=False)
-        
-        report_date = data.get("report_date")
-        if not report_date:
-            return api_response(status_code=400, message="Report date is required", data=[], status=False)
-        
-        item_code = data.get("item_code")
+        limit = int(limit)
+        offset = int(offset)
+    except:
+        return api_response(status=False, data=[], message="Please Enter Proper Limit and Offset", status_code=400)
+    #!limit and offset upper limit validation
+    if limit > 200 or limit < 0 or offset<0:
+        return api_response(status=False, data=[], message="Limit exceeded 500", status_code=400)
+    #!timestamp non empty validation
+    if timestamp is None or timestamp =="":
+        return api_response(status=False, data=[], message="Please Enter a timestamp", status_code=400)
+    #!timestamp format validation
+    try:
+        timestamp_datetime=datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
+    except Exception as e:
+        return api_response(status=False, data=[], message=f"Please Enter a valid timestamp {e}", status_code=400)
 
-        if not item_code or not frappe.db.exists("Item", item_code):
-            return api_response(status_code=400, message=f"{item_code} is not a valid item", data=[], status=False)
+    
+    pick_list_list= frappe.get_all("Pick List",
+        fields=["name as name",
+                "company",
+                "purpose",
+                "customer",
+                "customer_name",
+                "work_order",
+                "material_request",
+                "for_qty",
+                "parent_warehouse",
+                "modified as updated_at",],
+            
+            filters={
+                'modified':['>',timestamp],
+            },
+            limit=limit,
+            order_by='-modified'
+        )
+   
+        
+    #!attach picklist item
+    for pick_list in pick_list_list:
+        parent_id=pick_list.get("name")
+        pick_list_item=frappe.db.get_all("Pick List Item",filters={"parent":parent_id},fields=["*"])
+        pick_list["items"]=pick_list_item
 
-        billed_qty = data.get("billed_qty")
-        billed_qty=int(billed_qty)
-        if billed_qty is None or billed_qty < 0:
-            return api_response(status_code=400, message=f"{billed_qty} is not a valid billed quantity", data=[], status=False)
-        sample_size=data.get('sample_size')
-        sample_size=float(sample_size)
-        if sample_size is None or sample_size < 0:
-            return api_response(status_code=400, message=f"{sample_size} is not a valid sample size", data=[], status=False)
-        rejected_qty=data.get('rejected_qty')
-        rejected_qty=int(rejected_qty)
-        if rejected_qty is None or rejected_qty < 0:
-            return api_response(status_code=400, message=f"{rejected_qty} is not a valid rejected quantity", data=[], status=False)
-        branch=data.get('branch')
-        if not branch:
-            return api_response(status_code=400, message="Branch is required", data=[], status=False)
-        status=data.get('status')
-        if not status:
-            return api_response(status_code=400, message="Status is required", data=[], status=False)
-        batch_no=data.get('batch_no')
-        qc_status=data.get('qc_status')
-        doc = frappe.get_doc({
-            "doctype": "Quality Inspection",
-            "inspection_type": "Incoming",
-            "reference_type": "Purchase Receipt",
-            "reference_name": purchase_receipt,
-            "inspected_by": inspected_by,
-            "report_date": report_date,
-            "item_code": item_code,
-            "branch": branch,
-            "batch_no": batch_no,
-            "sample_size": sample_size,
-            "billed_qty":billed_qty,
-            "rejected_quantity": rejected_qty,
-            "qc_status":qc_status,
-            "status":status})
+        #!Adding item stock
+    if len(pick_list_list)==0:
+        return api_response(status=True, data=[], message="Empty Content", status_code=204)
+    else:
+        return api_response(status=True, data=pick_list_list, message="Successfully fetched Picklist List", status_code=200)
+    
+        
+                        
+   
 
             
-        
-        doc.insert()
-        doc.submit()
-        frappe.db.commit()
-        
-        return api_response(status_code=200, message="Quality Inspection Created Successfully", data=doc, status=True)
-    except Exception as e:
-        return api_response(status_code=400, message=f"Operation error {e}", data=[], status=False)
+            
+#!Item  Wise Batch wise Pick List Confirmation
+
+@frappe.whitelist(allow_guest=False,methods=["POST"])
+def create_pick_list_confirmation(
+                        pick_list="",
+                        pick_list_date="",
+                        customer_code="",
+                        item="",
+                        batch_no="",
+                        org_code="",
+                        bin_code="",
+                        stock_qty="",
+                        picked_qty="",
+                        process_flag="",
+                        error_desc="",
+                        sub_inventory="",
+                        pick_list_purpose="",
+                      ):
+            
+            if item=="":
+                return api_response(status=True, data=[], message="Enter Item Code", status_code=400)
+            if pick_list=="":
+                return api_response(status=True, data=[], message="Enter Delivery Note", status_code=400)
+            if pick_list_date=="":
+                return api_response(status=True, data=[], message="Enter Dispatch Order Number", status_code=400)
+            if customer_code=="":
+                return api_response(status=True, data=[], message="Enter Item Code", status_code=400)
+            if sub_inventory=="":
+                return api_response(status=True, data=[], message="Enter Sub Inventory", status_code=400)
+            if org_code=="":
+                return api_response(status=True, data=[], message="Enter Organization Code", status_code=400)
+            if bin_code=="":
+                return api_response(status=True, data=[], message="Enter Bin No", status_code=400)
+            if batch_no=="":
+                return api_response(status=True, data=[], message="Enter Batch No", status_code=400)
+            if stock_qty=="":
+                return api_response(status=True, data=[], message="Enter Qty", status_code=400)
+            if picked_qty=="":
+                return api_response(status=True, data=[], message="Enter Qty", status_code=400)
+            if process_flag=="":
+                return api_response(status=True, data=[], message="Enter Process Flag", status_code=400)
+            try:
+                stock_qty = int(stock_qty)
+                picked_qty=int(picked_qty)
+            except:
+                return api_response(status=False, data=[], message="Please Enter Proper Qty", status_code=400)
+            try:
+                pick_list_date = datetime.strptime(pick_list_date, '%Y-%m-%d')
+            except:
+                return api_response(status=False, data=[], message="Please Enter Proper Dispatch Order Date", status_code=400)
+            #!================================================================================================================>
+            if not frappe.db.exists("Pick List",pick_list):
+                return api_response(status=False, data=[], message="Pick List Does Not Exist", status_code=400)
+            if not frappe.db.exists("Customer",customer_code):
+                return api_response(status=False, data=[], message="Customer Does Not Exist", status_code=400)
+            if not frappe.db.exists("Item",item):
+                return api_response(status=False, data=[], message="Item Does Not Exist", status_code=400)
+            #!================================================================================================================>
+            try:
+       
+                doc = frappe.get_doc({
+                            "doctype": "Pick List Item Wise Batch Wise Confirmation",
+                            "pick_list": pick_list,
+                            "pick_list_date": pick_list_date,
+                            "customer_code": customer_code,
+                            "item": item,
+                            "batch_no": batch_no,
+                            "org_code": org_code,
+                            "bin_code": bin_code,
+                            "sub_inventory": sub_inventory,
+                            "stock_qty": stock_qty,
+                            "picked_qty":picked_qty,
+                            "process_flag": process_flag,
+                            "error_desc": error_desc,
+                            "picked_list_purpose":pick_list_purpose
+                        })
+                doc.insert()
+                frappe.db.commit()
+                return api_response(status=True,data=doc,message="Successfully Created Document",status_code=200)
+            except Exception as e:
+                    frappe.db.rollback()
+                    return api_response(status=False,data='',message="Operation Failed",status_code=500)
+
+            
+            
+            

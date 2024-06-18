@@ -1,0 +1,125 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:PICK-LIST-CONFIRMATION-{######}",
+ "creation": "2024-06-18 15:09:45.976472",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "pick_list",
+  "pick_list_date",
+  "picked_list_purpose",
+  "customer_code",
+  "customer_name",
+  "item",
+  "sub_inventory",
+  "organisation_code",
+  "bin_code",
+  "batch_code",
+  "stock_qty",
+  "picked_qty",
+  "process_flag",
+  "error_desc"
+ ],
+ "fields": [
+  {
+   "fieldname": "pick_list",
+   "fieldtype": "Link",
+   "label": "Pick List",
+   "options": "Pick List"
+  },
+  {
+   "fieldname": "pick_list_date",
+   "fieldtype": "Data",
+   "label": "Pick List Date"
+  },
+  {
+   "fieldname": "customer_code",
+   "fieldtype": "Link",
+   "label": "Customer Code",
+   "options": "Customer"
+  },
+  {
+   "fetch_from": "customer_code.customer_name",
+   "fieldname": "customer_name",
+   "fieldtype": "Data",
+   "label": "Customer Name"
+  },
+  {
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "label": "Item",
+   "options": "Item"
+  },
+  {
+   "fieldname": "sub_inventory",
+   "fieldtype": "Data",
+   "label": "Sub Inventory"
+  },
+  {
+   "fieldname": "organisation_code",
+   "fieldtype": "Data",
+   "label": "Organisation Code"
+  },
+  {
+   "fieldname": "bin_code",
+   "fieldtype": "Data",
+   "label": "Bin Code"
+  },
+  {
+   "fieldname": "batch_code",
+   "fieldtype": "Data",
+   "label": "Batch Code"
+  },
+  {
+   "fieldname": "stock_qty",
+   "fieldtype": "Int",
+   "label": "Stock Qty"
+  },
+  {
+   "fieldname": "picked_qty",
+   "fieldtype": "Int",
+   "label": "Picked Qty"
+  },
+  {
+   "fieldname": "process_flag",
+   "fieldtype": "Data",
+   "label": "Process Flag"
+  },
+  {
+   "fieldname": "error_desc",
+   "fieldtype": "Small Text",
+   "label": "Error Desc"
+  },
+  {
+   "fieldname": "picked_list_purpose",
+   "fieldtype": "Data",
+   "label": "Picked List Purpose"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-06-18 15:54:38.020699",
+ "modified_by": "Administrator",
+ "module": "MedTech-BPA",
+ "name": "Pick List Item Wise Batch Wise Confirmation",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
