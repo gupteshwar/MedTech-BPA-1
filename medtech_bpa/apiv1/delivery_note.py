@@ -123,7 +123,7 @@ def getAllDeliveryNote(timestamp="",limit=50,offset=0):
     if len(delivery_note_list)==0:
         return api_response(status=True, data=[], message="Empty Content", status_code=204)
     else:
-        return api_response(status=True, data=delivery_note_list, message="None", status_code=200)
+        return api_response(status=True, data=delivery_note_list, message="Successfully Fetched Delivery Note", status_code=200)
     
         
                         

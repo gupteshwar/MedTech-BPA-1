@@ -40,7 +40,7 @@ def getItemGroupList(timestamp="",limit=100,offset=0):
     if len(item_group_list)==0:
         return api_response(status=True, data=[], message="Empty Content", status_code=204)
     else:
-        return api_response(status=True, data=item_group_list, message="None", status_code=200)
+        return api_response(status=True, data=item_group_list, message="Successfully Fetched Item Groups", status_code=200)
        
         
                         
@@ -94,7 +94,7 @@ def getItemList(timestamp="",limit=100,offset=0):
         for item in item_list:
             item_barcode_list=frappe.db.get_all("Item Barcode",filters={"parent":item["id"]},fields=["barcode_type"])
             item["barcode"]=item_barcode_list
-        return api_response(status=True, data=item_list, message="None", status_code=200)
+        return api_response(status=True, data=item_list, message="Successfully Fetched Items", status_code=200)
 
        
         
