@@ -2,6 +2,8 @@ import frappe
 from ..api_utils.response import api_response
 from datetime import datetime
 from frappe import _
+from erpnext.manufacturing.doctype.work_order.work_order import make_stock_entry
+from frappe.desk.form.save import savedocs
 #!Paginated Get Customer Details API
 #!Material Transfer for manufacturing Type
 
@@ -150,65 +152,8 @@ def create_stock_reconciliation(data):
                         
    
 
-#!========================================================================================================>
-@frappe.whitelist(allow_guest=False)
-def create_stock_entry_manufacturing(data):
-    try:
-        data = frappe.parse_json(data)
-        
-        # Validate company
-        company = data.get("company")
-        if not company or not frappe.db.exists("Company", company):
-            return api_response(status_code=400, message=_("Invalid company name"), data=[], status=False)
-        
-        # Validate stock entry type
-        stock_entry_type = data.get("stock_entry_type")
-        if stock_entry_type != "Manufacture":
-            return api_response(status_code=400, message=_("Invalid stock entry type. Only 'Manufacture' is allowed."), data=[], status=False)
-        
-        # Validate items
-        items = data.get("items", [])
-        if not items:
-            return api_response(status_code=400, message=_("No items provided"), data=[], status=False)
-        
-        valid_items = []
-        for item in items:
-            item_code = item.get("item_code")
-            s_warehouse = item.get("s_warehouse")
-            t_warehouse = item.get("t_warehouse")
-            qty = item.get("qty")
-            basic_rate = item.get("basic_rate")
-            
-            if not item_code or not frappe.db.exists("Item", item_code):
-                return api_response(status_code=400, message=f"{item_code} is not a valid item", data=[], status=False)
-            
-            if s_warehouse and not frappe.db.exists("Warehouse", s_warehouse):
-                return api_response(status_code=400, message=f"{s_warehouse} is not a valid source warehouse", data=[], status=False)
-            
-            if t_warehouse and not frappe.db.exists("Warehouse", t_warehouse):
-                return api_response(status_code=400, message=f"{t_warehouse} is not a valid target warehouse", data=[], status=False)
-            
-            if qty is None or qty < 0:
-                return api_response(status_code=400, message=f"{qty} is not a valid quantity", data=[], status=False)
-            
-            if basic_rate is None or basic_rate < 0:
-                return api_response(status_code=400, message=f"{basic_rate} is not a valid basic rate", data=[], status=False)
-            
-            valid_items.append(item)
-        
-        # Create the Stock Entry document
-        doc = frappe.get_doc({
-            "doctype": "Stock Entry",
-            "company": company,
-            "stock_entry_type": stock_entry_type,
-            "items": valid_items,
-        })
-        doc.insert()
-        frappe.db.commit()
-        
-        return api_response(status_code=200, message="Stock Entry created successfully", data=doc, status=True)
-    except Exception as e:
-        return api_response(status_code=400, message=f"Operation error: {e}", data=[], status=False)
+
+
     
 #!=========================================================================================================>
 #!Get All Work Orders
@@ -253,3 +198,25 @@ def getAllWorkOrders(timestamp="",limit=10,offset=0):
         return api_response(status=True, data=[], message="Empty Content", status_code=204)
     else:
         return api_response(status=True, data=work_order_list, message="Fetched Work Order List Successfully", status_code=200)
+    
+
+# #!========================================================================================================>
+@frappe.whitelist(allow_guest=False,methods=["POST"])
+def create_stock_entry_manufacturing_against_work_order(work_order_id="",purpose=""):
+    if purpose=="":
+        return api_response(status_code=400, message=f"Please Enter A Purpose", data=[], status=False)
+    if work_order_id=="":
+         return api_response(status_code=400, message=f"Please Enter A  Work Order", data=[], status=False)
+    if not frappe.db.exists("Work Order",work_order_id):
+        return api_response(status_code=400, message=f"Please Enter A Valid Work Order", data=[], status=False)
+    work_order=frappe.db.get_all("Work Order",filters={"name":work_order_id},fields=["*"])
+    work_order_status=work_order[0].get("status")
+    if work_order_status!="In Process":
+        return api_response(status_code=400, message=f"Work Order Must In Process", data=[], status=False)
+
+    stock_entry=make_stock_entry(work_order_id=work_order_id,purpose=purpose)
+    stock_entry_doc=frappe.get_doc(stock_entry)
+    stock_entry_doc.insert()
+    stock_entry_doc.submit()
+    return api_response(status_code=200, message="Stock Entry Success", data=stock_entry_doc, status=True)
+    
