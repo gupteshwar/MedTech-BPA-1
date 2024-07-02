@@ -87,8 +87,8 @@ def create_pick_list_confirmation(
                 return api_response(status=True, data=[], message="Enter Delivery Note", status_code=400)
             if pick_list_date=="":
                 return api_response(status=True, data=[], message="Enter Dispatch Order Number", status_code=400)
-            if customer_code=="":
-                return api_response(status=True, data=[], message="Enter Item Code", status_code=400)
+            # if customer_code=="":
+            #     return api_response(status=True, data=[], message="Enter Item Code", status_code=400)
             if sub_inventory=="":
                 return api_response(status=True, data=[], message="Enter Sub Inventory", status_code=400)
             if org_code=="":
