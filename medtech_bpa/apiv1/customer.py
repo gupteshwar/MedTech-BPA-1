@@ -1,6 +1,8 @@
 import frappe
 from ..api_utils.response import api_response
 from datetime import datetime
+from bs4 import BeautifulSoup
+
 #!Paginated Get Customer Details API
 @frappe.whitelist(allow_guest=False,methods=["GET"])
 def getCustomerList(timestamp="",limit=50,offset=0):
@@ -23,6 +25,7 @@ def getCustomerList(timestamp="",limit=50,offset=0):
     except Exception as e:
         return api_response(status=False, data=[], message=f"Please Enter a valid timestamp {e}", status_code=400)
 
+   
     customer_list = frappe.get_all("Customer",
         fields=["customer_code as customer_code",
                 "customer_name as customer_name",
@@ -45,10 +48,31 @@ def getCustomerList(timestamp="",limit=50,offset=0):
             start=offset,
             order_by='-modified'
         )
+    #!alter long string text
+    for customer in customer_list:
+        if customer.primary_address:
+            soup = BeautifulSoup(customer.primary_address, 'html.parser')
+            customer.primary_address = soup.get_text()
+    #!total length without the timestamp filter 
+    #!=============================================================================================
+    customer_total_before_timestamp= frappe.get_all("Customer")
+    data_size_before_timestamp=len(customer_total_before_timestamp)
+    #!=============================================================================================
+
+                        
+    #!total length with the timestamp filter 
+    #!=============================================================================================
+    customer_total_after_timestamp= frappe.get_all("Customer",filters={'modified':['>',timestamp]})
+    data_size=len(customer_total_after_timestamp)
+    #!total length with the timestamp filter 
+    #!=============================================================================================
+    customer_total_after_timestamp= frappe.get_all("Customer",filters={'modified':['>',timestamp]})
+    data_size=len(customer_total_after_timestamp)
+    #!=============================================================================================
     if len(customer_list)==0:
         return api_response(status=True, data=[], message="Empty Content", status_code=204)
     else:
-        return api_response(status=True, data=customer_list, message="Successfully Fetched All Customers", status_code=200)
+        return api_response(status=True, data=customer_list, message="Successfully Fetched All Customers", status_code=200,data_size=data_size)
     
         
                         

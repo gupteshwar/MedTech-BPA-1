@@ -1,6 +1,7 @@
 import frappe
 from ..api_utils.response import api_response
 from datetime import datetime
+from bs4 import BeautifulSoup
 
 @frappe.whitelist(allow_guest=False,methods=["GET"])
 def getSupplierList(timestamp="",limit=50,offset=0):
@@ -42,10 +43,24 @@ def getSupplierList(timestamp="",limit=50,offset=0):
             start=offset,
             order_by='-modified'
         )
+   
+    #!alter long string text
+    for supplier in supplier_list:
+        if supplier.primary_address:
+            soup = BeautifulSoup(supplier.primary_address, 'html.parser')
+            supplier.primary_address = soup.get_text()
+    #!================================================================
+    supplier_list_timestamp=frappe.get_all("Supplier",filters={'modified':['>',timestamp]})
+    data_size=len(supplier_list_timestamp)
+    #!================================================================
     if len(supplier_list)==0:
-        return api_response(status=True, data=[], message="Empty Content", status_code=204)
+        return api_response(status=True,data=[], message="Empty Content", status_code=204)
     else:
-        return api_response(status=True, data=supplier_list, message="None", status_code=200)
+        return api_response(status=True, 
+                            data=supplier_list, 
+                            message="None", 
+                            status_code=200,
+                            data_size=data_size)
         
                         
    

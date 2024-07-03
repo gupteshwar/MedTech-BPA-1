@@ -2,6 +2,7 @@ import frappe
 from ..api_utils.response import api_response
 from datetime import datetime
 from frappe import _
+from bs4 import BeautifulSoup
 from erpnext.manufacturing.doctype.work_order.work_order import make_stock_entry
 from frappe.desk.form.save import savedocs
 #!Paginated Get Customer Details API
@@ -48,6 +49,12 @@ def getAllStockEntryMaterialTransferForManufacturing(timestamp="",limit=50,offse
         fields=["item_code","item_name","description","serial_and_batch_bundle","serial_no","batch_no",
                 "uom","qty"]
         )
+        #!==================================================================================
+        for stock_entry_item_data in stock_entry_child_table:
+            if stock_entry_item_data.description:
+                soup = BeautifulSoup(stock_entry_item_data.description, 'html.parser')
+                stock_entry_item_data.description = soup.get_text()
+        #!=====================================================================================================
         for stock_entry_items in stock_entry_child_table:
             batch_id=stock_entry_items["batch_no"]
             if batch_id is not None:
@@ -77,12 +84,23 @@ def getAllStockEntryMaterialTransferForManufacturing(timestamp="",limit=50,offse
                 stock_entry_items["manufacturing_date"]=None
             
         stock_entry["item"]=stock_entry_child_table
-
-        
+    #!==========================================================================================================================
+    stock_entry_list_with_timestamp = frappe.get_all("Stock Entry",
+        filters={
+                'modified':['>',timestamp],
+                'purpose':"Material Transfer for Manufacture"
+            },
+        )   
+    data_size=len(stock_entry_list_with_timestamp)
+    #!================================================================================================================================ 
     if len(stock_entry_list)==0:
         return api_response(status=True, data=[], message="Empty Content", status_code=204)
     else:
-        return api_response(status=True, data=stock_entry_list, message="Fetched Stocked Entries Successfully", status_code=200)
+        return api_response(status=True, 
+                            data=stock_entry_list,
+                            message="Fetched Stocked Entries Successfully",
+                            status_code=200,
+                            data_size=data_size)
 
 #!=================================================================================>
 @frappe.whitelist(allow_guest=False)
@@ -190,14 +208,30 @@ def getAllWorkOrders(timestamp="",limit=10,offset=0):
         start=offset
         )
     # #!Adding Item and Batch Detail
+    
     for work_order in work_order_list:
         parent_id=work_order.get('name')
         work_order_item=frappe.db.get_all("Work Order Item",filters={'parent':parent_id},fields=["*"])
+        for work_order_item_data in work_order_item:
+           if work_order_item_data.description:
+                soup = BeautifulSoup(work_order_item_data.description, 'html.parser')
+                work_order_item_data.description = soup.get_text() 
         work_order["required_items"]=work_order_item     
+    #!===================================================================
+    work_order_list_with_timestamp = frappe.get_all("Work Order",filters={'modified':['>',timestamp]})
+    data_size=len(work_order_list_with_timestamp)
+    
+
+
+    #!===================================================================
     if len(work_order_list)==0:
         return api_response(status=True, data=[], message="Empty Content", status_code=204)
     else:
-        return api_response(status=True, data=work_order_list, message="Fetched Work Order List Successfully", status_code=200)
+        return api_response(status=True, 
+                            data=work_order_list, 
+                            message="Fetched Work Order List Successfully", 
+                            status_code=200,
+                            data_size=data_size)
     
 
 # #!========================================================================================================>

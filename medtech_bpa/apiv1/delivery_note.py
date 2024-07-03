@@ -1,6 +1,7 @@
 import frappe
 from ..api_utils.response import api_response
 from datetime import datetime
+from bs4 import BeautifulSoup
 #!Paginated Get Customer Details API
 @frappe.whitelist(allow_guest=False,methods=["GET"])
 def getAllDeliveryNote(timestamp="",limit=50,offset=0):
@@ -41,11 +42,21 @@ def getAllDeliveryNote(timestamp="",limit=50,offset=0):
                 "is_return":0
             },
             limit=limit,
+            start=offset,
             order_by='-modified'
         )
-    #!2 add customer_details
+   
+   
     for delivery_note in delivery_note_list:
-
+        #!=============================================
+        #!parsing addresses
+        if delivery_note.billing_address:
+            soup = BeautifulSoup(delivery_note.billing_address, 'html.parser')
+            delivery_note.billing_address = soup.get_text()
+            soup= BeautifulSoup(delivery_note.shipping_address, 'html.parser')
+            delivery_note.shipping_address=soup.get_text()
+        #!================================================
+        #!2 add customer_details    
         #!==========================================
         customer=delivery_note["customer"]
         customer_details=frappe.db.get_all("Customer",filters={
@@ -66,9 +77,15 @@ def getAllDeliveryNote(timestamp="",limit=50,offset=0):
                 "uom","qty","serial_no","serial_and_batch_bundle","batch_no","against_sales_invoice"
                 ]
         )
-        #!===========================
+        #!=============================================================================
+        #!Parsing Description
+        for delivery_note_items in delivery_note_child_table:
+           if delivery_note_items.description:
+                soup = BeautifulSoup(delivery_note_items.description, 'html.parser')
+                delivery_note_items.description = soup.get_text() 
+        #!==============================================================================
         #! Adding Item Child Table  and batch details
-   
+    
         for delivery_note_items in delivery_note_child_table:
             batch_id=delivery_note_items["batch_no"]
             if batch_id is not None:
@@ -118,12 +135,23 @@ def getAllDeliveryNote(timestamp="",limit=50,offset=0):
             else:
                 delivery_note["sales_invoice"]=""
                 delivery_note["sales_invoice_date"]=""
-
-
+    #!====================================================================
+    delivery_note_list_with_timestamp= frappe.get_all("Delivery Note",
+            filters={'modified':['>',timestamp],"is_return":0
+            },
+         
+        )
+    data_size=len(delivery_note_list_with_timestamp)
+    #!=====================================================================
     if len(delivery_note_list)==0:
         return api_response(status=True, data=[], message="Empty Content", status_code=204)
     else:
-        return api_response(status=True, data=delivery_note_list, message="Successfully Fetched Delivery Note", status_code=200)
+        return api_response(status=True, 
+                            data=delivery_note_list, 
+                            message="Successfully Fetched Delivery Note",
+                            status_code=200,
+                            data_size=data_size
+                            )
     
         
                         
@@ -170,11 +198,19 @@ def getAllSalesReturn(timestamp="",limit=50,offset=0):
                 "is_return":1
             },
             limit=limit,
+            start=offset,
             order_by='-modified'
         )
     #!add customer_details
     for delivery_note in delivery_note_list:
-
+        #!=============================================
+        #!parsing addresses
+        if delivery_note.billing_address:
+            soup = BeautifulSoup(delivery_note.billing_address, 'html.parser')
+            delivery_note.billing_address = soup.get_text()
+            soup= BeautifulSoup(delivery_note.shipping_address, 'html.parser')
+            delivery_note.shipping_address=soup.get_text()
+        #!================================================
         #!==========================================
         customer=delivery_note["customer"]
         customer_details=frappe.db.get_all("Customer",filters={
@@ -196,6 +232,13 @@ def getAllSalesReturn(timestamp="",limit=50,offset=0):
                 "uom","qty","serial_no","serial_and_batch_bundle","batch_no","against_sales_invoice"
                 ]
         )
+        #!=============================================================================
+        #!Parsing Description
+        for delivery_note_items in delivery_note_child_table:
+           if delivery_note_items.description:
+                soup = BeautifulSoup(delivery_note_items.description, 'html.parser')
+                delivery_note_items.description = soup.get_text() 
+        #!==============================================================================
         for delivery_note_items in delivery_note_child_table:
             batch_id=delivery_note_items["batch_no"]
             if batch_id is not None:
@@ -243,12 +286,20 @@ def getAllSalesReturn(timestamp="",limit=50,offset=0):
             else:
                 delivery_note["sales_invoice"]=""
                 delivery_note["sales_invoice_date"]=""
-
+    #!====================================================================
+    sales_return_list_with_timestamp= frappe.get_all("Delivery Note",
+            filters={'modified':['>',timestamp],"is_return":1
+            },
+         
+        )
+    data_size=len(sales_return_list_with_timestamp)
+    #!=====================================================================
 
     if len(delivery_note_list)==0:
         return api_response(status=True, data=[], message="Empty Content", status_code=204)
     else:
-        return api_response(status=True, data=delivery_note_list, message="None", status_code=200)
+        return api_response(status=True, 
+                            data=delivery_note_list, message="Fetched All Sales Return ", status_code=200,data_size=data_size)
     
         
                         
@@ -277,16 +328,16 @@ def create_delivery_note_confirmation(
                 return api_response(status=True, data=[], message="Enter Delivery Note", status_code=400)
             if dispatch_order_number=="":
                 return api_response(status=True, data=[], message="Enter Dispatch Order Number", status_code=400)
-            if customer_code=="":
-                return api_response(status=True, data=[], message="Enter Item Code", status_code=400)
-            if sub_inventory=="":
-                return api_response(status=True, data=[], message="Enter Sub Inventory", status_code=400)
-            if org_code=="":
-                return api_response(status=True, data=[], message="Enter Organization Code", status_code=400)
-            if bin_code=="":
-                return api_response(status=True, data=[], message="Enter Bin No", status_code=400)
-            if batch_no=="":
-                return api_response(status=True, data=[], message="Enter Batch No", status_code=400)
+            # if customer_code=="":
+            #     return api_response(status=True, data=[], message="Enter Item Code", status_code=400)
+            # if sub_inventory=="":
+            #     return api_response(status=True, data=[], message="Enter Sub Inventory", status_code=400)
+            # if org_code=="":
+            #     return api_response(status=True, data=[], message="Enter Organization Code", status_code=400)
+            # if bin_code=="":
+            #     return api_response(status=True, data=[], message="Enter Bin No", status_code=400)
+            # if batch_no=="":
+            #     return api_response(status=True, data=[], message="Enter Batch No", status_code=400)
             if dispatch_qty=="":
                 return api_response(status=True, data=[], message="Enter Qty", status_code=400)
             if process_flag=="":
@@ -304,8 +355,9 @@ def create_delivery_note_confirmation(
             #!================================================================================================================>
             if not frappe.db.exists("Delivery Note",delivery_note):
                 return api_response(status=False, data=[], message="Delivery Note Does Not Exist", status_code=400)
-            if not frappe.db.exists("Customer",customer_code):
-                return api_response(status=False, data=[], message="Customer Does Not Exist", status_code=400)
+            if customer_code!="":
+                if not frappe.db.exists("Customer",customer_code):
+                    return api_response(status=False, data=[], message="Customer Does Not Exist", status_code=400)
             if not frappe.db.exists("Item",item_code):
                 return api_response(status=False, data=[], message="Item Does Not Exist", status_code=400)
             #!================================================================================================================>

@@ -49,14 +49,18 @@ def json_handler(obj):
             f"""Object of type {type(obj)} with value of {repr(obj)} is not JSON serializable"""
         )
 #!=================================================================================================
-def api_response(status=True, data=None, message="", status_code=200):
+def api_response(status=True, data=None, message="", status_code=200,data_size=0):
     if data is None:
         data = {}
     response = Response()
 
     response.status_code = status_code
     response.mimetype = "application/json"
-    response.data = json.dumps({"status": status, "message": message, "data": data},
+    response.data = json.dumps({"status": status, 
+                                "message": message, 
+                                "data_size": data_size,
+                                "data": data
+                                },
                                default=json_handler, separators=(",", ":"))
 
     return response

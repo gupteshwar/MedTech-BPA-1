@@ -1,6 +1,8 @@
 import frappe
 from ..api_utils.response import api_response
 from datetime import datetime
+from bs4 import BeautifulSoup
+
 #!Paginated Get Customer Details API
 @frappe.whitelist(allow_guest=False,methods=["GET"])
 def getItemGroupList(timestamp="",limit=100,offset=0):
@@ -37,10 +39,20 @@ def getItemGroupList(timestamp="",limit=100,offset=0):
             start=offset,
             order_by='-modified'
         )
+    #!==========================================================================================
+    #!==========================================================================================
+    item_group_list_time_stamp = frappe.get_all("Item Group",filters={'modified':['>',timestamp]} )
+    data_size=len(item_group_list_time_stamp)
+
+    #!=========================================================================================
     if len(item_group_list)==0:
         return api_response(status=True, data=[], message="Empty Content", status_code=204)
     else:
-        return api_response(status=True, data=item_group_list, message="Successfully Fetched Item Groups", status_code=200)
+        return api_response(status=True, 
+                            data=item_group_list, 
+                            message="Successfully Fetched Item Groups", 
+                            status_code=200,
+                            data_size=data_size)
        
         
                         
@@ -88,13 +100,33 @@ def getItemList(timestamp="",limit=100,offset=0):
             start=offset,
             order_by='-modified'
         )
+    #!==========================================================================================
+    for item in item_list:
+         if item.item_description:
+            soup = BeautifulSoup(item.item_description, 'html.parser')
+            item.item_description = soup.get_text()
+
+    #!==========================================================================================
+    item_list_with_timestamp = frappe.get_all("Item",
+       
+            
+            filters={
+                'modified':['>',timestamp]
+            },
+        )
+    data_size=len(item_list_with_timestamp)
+    #!==============================================================================================
     if len(item_list)==0:
         return api_response(status=True, data=[], message="Empty Content", status_code=204)
     else:
         for item in item_list:
             item_barcode_list=frappe.db.get_all("Item Barcode",filters={"parent":item["id"]},fields=["barcode_type"])
             item["barcode"]=item_barcode_list
-        return api_response(status=True, data=item_list, message="Successfully Fetched Items", status_code=200)
+        return api_response(status=True, 
+                            data=item_list, 
+                            message="Successfully Fetched Items", 
+                            status_code=200,
+                            data_size=data_size)
 
        
         

@@ -1,6 +1,7 @@
 import frappe
 from ..api_utils.response import api_response
 from datetime import datetime
+from bs4 import BeautifulSoup
 #!Paginated Get Customer Details API
 @frappe.whitelist(allow_guest=False,methods=["GET"])
 def getAllPickList(timestamp="",limit=50,offset=0):
@@ -40,6 +41,7 @@ def getAllPickList(timestamp="",limit=50,offset=0):
                 'modified':['>',timestamp],
             },
             limit=limit,
+            start=offset,
             order_by='-modified'
         )
    
@@ -48,13 +50,28 @@ def getAllPickList(timestamp="",limit=50,offset=0):
     for pick_list in pick_list_list:
         parent_id=pick_list.get("name")
         pick_list_item=frappe.db.get_all("Pick List Item",filters={"parent":parent_id},fields=["*"])
+        for pick_list_item_data in pick_list_item:
+           if pick_list_item_data.description:
+                soup = BeautifulSoup(pick_list_item_data.description, 'html.parser')
+                pick_list_item_data.description = soup.get_text() 
         pick_list["items"]=pick_list_item
 
         #!Adding item stock
+    #!==================================================
+    pick_list_list_with_timestamp= frappe.get_all("Pick List",
+            filters={
+                'modified':['>',timestamp],
+            },
+        )
+    data_size=len(pick_list_list_with_timestamp)
     if len(pick_list_list)==0:
         return api_response(status=True, data=[], message="Empty Content", status_code=204)
     else:
-        return api_response(status=True, data=pick_list_list, message="Successfully fetched Picklist List", status_code=200)
+        return api_response(status=True, 
+                            data=pick_list_list, 
+                            message="Successfully fetched Picklist List", 
+                            status_code=200,
+                            data_size=data_size)
     
         
                         
@@ -75,7 +92,7 @@ def create_pick_list_confirmation(
                         bin_code="",
                         stock_qty="",
                         picked_qty="",
-                        process_flag="",
+                        process_flag=0,
                         error_desc="",
                         sub_inventory="",
                         pick_list_purpose="",
@@ -88,15 +105,15 @@ def create_pick_list_confirmation(
             if pick_list_date=="":
                 return api_response(status=True, data=[], message="Enter Dispatch Order Number", status_code=400)
             # if customer_code=="":
-            #     return api_response(status=True, data=[], message="Enter Item Code", status_code=400)
-            if sub_inventory=="":
-                return api_response(status=True, data=[], message="Enter Sub Inventory", status_code=400)
-            if org_code=="":
-                return api_response(status=True, data=[], message="Enter Organization Code", status_code=400)
-            if bin_code=="":
-                return api_response(status=True, data=[], message="Enter Bin No", status_code=400)
-            if batch_no=="":
-                return api_response(status=True, data=[], message="Enter Batch No", status_code=400)
+            # return api_response(status=True, data=[], message="Enter Item Code", status_code=400)
+            # if sub_inventory=="":
+            #     return api_response(status=True, data=[], message="Enter Sub Inventory", status_code=400)
+            # if org_code=="":
+            #     return api_response(status=True, data=[], message="Enter Organization Code", status_code=400)
+            # if bin_code=="":
+            #     return api_response(status=True, data=[], message="Enter Bin No", status_code=400)
+            # if batch_no=="":
+            #     return api_response(status=True, data=[], message="Enter Batch No", status_code=400)
             if stock_qty=="":
                 return api_response(status=True, data=[], message="Enter Qty", status_code=400)
             if picked_qty=="":
@@ -115,10 +132,12 @@ def create_pick_list_confirmation(
             #!================================================================================================================>
             if not frappe.db.exists("Pick List",pick_list):
                 return api_response(status=False, data=[], message="Pick List Does Not Exist", status_code=400)
-            if not frappe.db.exists("Customer",customer_code):
-                return api_response(status=False, data=[], message="Customer Does Not Exist", status_code=400)
             if not frappe.db.exists("Item",item):
                 return api_response(status=False, data=[], message="Item Does Not Exist", status_code=400)
+            if customer_code!="":
+                if not frappe.db.exists("Customer",customer_code):
+                    return api_response(status=False, data=[], message="Customer Does Not Exist", status_code=400)
+                
             #!================================================================================================================>
             try:
        
