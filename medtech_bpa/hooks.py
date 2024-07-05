@@ -170,6 +170,11 @@ doc_events = {
 	"Purchase Invoice":{
 		"validate":"medtech_bpa.medtech_bpa.custom_scripts.purchase_invoice.purchase_invoice.validate"
 	},
+	"BOM":{
+	"autoname":"medtech_bpa.medtech_bpa.custom_scripts.bom.bom.autoname"
+	},
+
+	
 	"Sales Order":{
 		"on_update_after_submit":"medtech_bpa.medtech_bpa.custom_scripts.sales_order.sales_order.on_update_after_submit",
 		"validate": ["medtech_bpa.medtech_bpa.custom_scripts.sales_order.sales_order.validate",
@@ -180,9 +185,7 @@ doc_events = {
 		"validate":"medtech_bpa.medtech_bpa.custom_scripts.delivery_note.delivery_note.validate",
 		"before_save":"medtech_bpa.medtech_bpa.custom_scripts.delivery_note.delivery_note.before_save"
 	},
-	"BOM":{
-	"autoname":"medtech_bpa.medtech_bpa.custom_scripts.bom.bom.autoname"
-	},
+	
 	"Sales Invoice":{
 		"validate":"medtech_bpa.medtech_bpa.custom_scripts.sales_invoice.sales_invoice.validate",
 		"on_submit":"medtech_bpa.medtech_bpa.custom_scripts.sales_invoice.sales_invoice.on_submit",
