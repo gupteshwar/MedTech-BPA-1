@@ -7,7 +7,7 @@ frappe.ui.form.on('Sales Invoice', {
             else if (i.fully_discount == 1 && i.delivery_note != null && frm.doc.__islocal){
                 i.price_list_rate = i.fully_discount_rate;
             } 
-
+            console.log("Sales Order: " + i.sales_order)
             //!setting up mrp
             if (i.delivery_note != null){
                 frappe.call({
@@ -18,22 +18,22 @@ frappe.ui.form.on('Sales Invoice', {
                     },
                     callback: function(r) {
                         if (r.message.length > 0){
-                            row.custom_mrp = r.message[0].custom_mrp
+                            i.custom_mrp = r.message[0].custom_mrp
                             }
                          }
                     })
                 } 
-            else if (i.sales_order != null && frm.doc.__islocal){
-                console.log("Called Method"+i.sales_order+i.delivery_note)
+            
+            if (i.sales_order != null && frm.doc.__islocal){
                 frappe.call({
                     method: 'medtech_bpa.medtech_bpa.custom_scripts.delivery_note.delivery_note.get_mrp_against_sales_order',
                     args:{
-                        'sales_order':i.against_sales_order,
+                        'sales_order':i.sales_order,
                         'item_code':i.item_code
                     },
                     callback: function(r) {
                         if (r.message.length > 0){
-                            row.custom_mrp = r.message[0].custom_mrp
+                            i.custom_mrp = r.message[0].custom_mrp
                             }
                         }
                         })

@@ -16,7 +16,7 @@ frappe.ui.form.on('Delivery Note', {
                 },
                 callback: function(r) {
                     if (r.message.length > 0){
-                        row.custom_mrp = r.message[0].custom_mrp
+                        i.custom_mrp = r.message[0].custom_mrp
                         }
                      }
                     })
