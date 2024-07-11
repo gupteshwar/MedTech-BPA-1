@@ -8,6 +8,7 @@
  "field_order": [
   "pick_list",
   "pick_list_date",
+  "delivery_note",
   "picked_list_purpose",
   "customer_code",
   "customer_name",
@@ -95,11 +96,17 @@
    "fieldname": "picked_list_purpose",
    "fieldtype": "Data",
    "label": "Picked List Purpose"
+  },
+  {
+   "fieldname": "delivery_note",
+   "fieldtype": "Link",
+   "label": "Delivery Note",
+   "options": "Delivery Note"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-07-03 13:04:18.861796",
+ "modified": "2024-07-11 12:55:10.750662",
  "modified_by": "Administrator",
  "module": "MedTech-BPA",
  "name": "Pick List Item Wise Batch Wise Confirmation",
