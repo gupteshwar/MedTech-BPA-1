@@ -9,6 +9,7 @@
   "delivery_note",
   "dispatch_order_date",
   "dispatch_order_number",
+  "pick_list",
   "customer_code",
   "customer_name",
   "data_kbhg",
@@ -103,11 +104,17 @@
    "fieldname": "dispatch_order_date",
    "fieldtype": "Data",
    "label": "Dispatch Order Date"
+  },
+  {
+   "fieldname": "pick_list",
+   "fieldtype": "Link",
+   "label": "Pick List",
+   "options": "Pick List"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-06-11 14:17:02.648377",
+ "modified": "2024-07-11 12:54:30.154662",
  "modified_by": "Administrator",
  "module": "MedTech-BPA",
  "name": "confirm Delivery Note Item Wise Batch Wise",

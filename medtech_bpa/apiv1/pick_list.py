@@ -57,6 +57,15 @@ def getAllPickList(timestamp="",limit=50,offset=0):
         pick_list["items"]=pick_list_item
 
         #!Adding item stock
+    #!attaching delivery note id 
+    for pick_list in pick_list_list:
+        delivery_note=frappe.db.get_all("Delivery Note", filters={"pick_list":pick_list.get("name")}, fields=["name"])
+        if len(delivery_note) > 0:
+             delivery_note=delivery_note[0].get("name")
+        else:
+             delivery_note=None  # if no delivery note found set it to None
+        pick_list["delivery_note"]=delivery_note
+    #!attach
     #!==================================================
     pick_list_list_with_timestamp= frappe.get_all("Pick List",
             filters={
@@ -96,6 +105,7 @@ def create_pick_list_confirmation(
                         error_desc="",
                         sub_inventory="",
                         pick_list_purpose="",
+                        delivery_note="",
                       ):
             
             if item=="":
@@ -130,7 +140,8 @@ def create_pick_list_confirmation(
                 return api_response(status=False, data=[], message="Item Does Not Exist", status_code=400)
             if customer_code!="" and not frappe.db.exists("Customer",customer_code):
                     return api_response(status=False, data=[], message="Customer Does Not Exist", status_code=400)
-                
+            if delivery_note!="" and not frappe.db.exists("Delivery Note",delivery_note):
+                 return api_response(status=False, data=[], message="Delivery Note Does Not Exist", status_code=400)
             #!================================================================================================================>
             try:
        
@@ -148,7 +159,8 @@ def create_pick_list_confirmation(
                             "picked_qty":picked_qty,
                             "process_flag": process_flag,
                             "error_desc": error_desc,
-                            "picked_list_purpose":pick_list_purpose
+                            "picked_list_purpose":pick_list_purpose,
+                            "delivery_note":delivery_note
                         })
                 doc.insert()
                 frappe.db.commit()

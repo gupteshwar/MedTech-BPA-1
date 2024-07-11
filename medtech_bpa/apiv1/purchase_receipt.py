@@ -257,6 +257,12 @@ def create_purchase_receipt_confirmation(
                 return api_response(status=True, data=[], message="Enter Visual Inspection Report/Purchase Receipt", status_code=400)
             if item_code=="":
                 return api_response(status=True, data=[], message="Enter Item Code", status_code=400)
+            
+            confirmation_list=frappe.db.get_all("Purchase Receipt Item Wise Batch Wise Confirmation",
+                                                filters={"visual_inspection_report": visual_inspection_report,
+                                                         "item_code": item_code,})
+            if len(confirmation_list)>0:
+                return api_response(status=True, data=[], message="Purchase Receipt Item Wise Batch Wise Confirmation", status_code=400)
             # if po_number=="":
             #     return api_response(status=True, data=[], message="Enter PO Number", status_code=400)
             # if sub_inventory=="":

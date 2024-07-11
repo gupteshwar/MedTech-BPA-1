@@ -320,7 +320,8 @@ def create_delivery_note_confirmation(
                         dispatch_qty="",
                         process_flag="",
                         error_desc="",
-                        sub_inventory=""
+                        sub_inventory="",
+                        pick_list=""
                       ):
             
             
@@ -328,6 +329,12 @@ def create_delivery_note_confirmation(
                 return api_response(status=True, data=[], message="Enter Delivery Note", status_code=400)
             if dispatch_order_number=="":
                 return api_response(status=True, data=[], message="Enter Dispatch Order Number", status_code=400)
+            
+            confirmation_list=frappe.db.get_all("confirm Delivery Note Item Wise Batch Wise",
+                                                filters={"delivery_note": delivery_note,
+                                                         "item_code": item_code,})
+            if len(confirmation_list)>0:
+                return api_response(status=True, data=[], message="Delivery Note Item Wise Batch Wise Already Exists", status_code=400)
             # if customer_code=="":
             #     return api_response(status=True, data=[], message="Enter Item Code", status_code=400)
             # if sub_inventory=="":
@@ -353,6 +360,8 @@ def create_delivery_note_confirmation(
             except:
                 return api_response(status=False, data=[], message="Please Enter Proper Dispatch Order Date", status_code=400)
             #!================================================================================================================>
+            if pick_list !="" and not frappe.db.exists("Pick List",pick_list):
+                return api_response(status=False, data=[], message="Pick List Does Not Exist", status_code=400)
             if not frappe.db.exists("Delivery Note",delivery_note):
                 return api_response(status=False, data=[], message="Delivery Note Does Not Exist", status_code=400)
             if customer_code!="":
@@ -376,7 +385,8 @@ def create_delivery_note_confirmation(
                             "subinventory": sub_inventory,
                             "dispatch_qty": dispatch_qty,
                             "process_flag": process_flag,
-                            "error_desc": error_desc
+                            "error_desc": error_desc,
+                            "pick_list": pick_list
                         })
                 doc.insert()
                 frappe.db.commit()
