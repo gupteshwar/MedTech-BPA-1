@@ -257,24 +257,9 @@ def create_purchase_receipt_confirmation(
                 return api_response(status=True, data=[], message="Enter Visual Inspection Report/Purchase Receipt", status_code=400)
             if item_code=="":
                 return api_response(status=True, data=[], message="Enter Item Code", status_code=400)
-            
-            confirmation_list=frappe.db.get_all("Purchase Receipt Item Wise Batch Wise Confirmation",
-                                                filters={"visual_inspection_report": visual_inspection_report,
-                                                         "item_code": item_code,})
-            if len(confirmation_list)>0:
-                return api_response(status=True, data=[], message="Purchase Receipt Item Wise Batch Wise Confirmation", status_code=400)
-            # if po_number=="":
-            #     return api_response(status=True, data=[], message="Enter PO Number", status_code=400)
-            # if sub_inventory=="":
-            #     return api_response(status=True, data=[], message="Enter Sub Inventory", status_code=400)
-            # if organization_code=="":
-            #     return api_response(status=True, data=[], message="Enter Organization Code", status_code=400)
-            # if bin_no=="":
-            #     return api_response(status=True, data=[], message="Enter Bin No", status_code=400)
-            # if batch_no=="":
-            #     return api_response(status=True, data=[], message="Enter Batch No", status_code=400)
             if qty=="":
                 return api_response(status=True, data=[], message="Enter Qty", status_code=400)
+            
             if process_flag=="":
                 return api_response(status=True, data=[], message="Enter Process Flag", status_code=400)
             if rec_entry_date=="":
@@ -283,6 +268,8 @@ def create_purchase_receipt_confirmation(
                 qty = int(qty)
             except:
                 return api_response(status=False, data=[], message="Please Enter Proper Qty", status_code=400)
+            if int(qty)<=0:
+                return api_response(status=False, data=[], message="Please Enter Positive Qty", status_code=400)
             try:
                 rec_entry_date = datetime.strptime(rec_entry_date, '%Y-%m-%d')
             except:
@@ -292,8 +279,47 @@ def create_purchase_receipt_confirmation(
             if not frappe.db.exists("Item",item_code):
                 return api_response(status=False, data=[], message="Item Does Not Exist", status_code=400)
             
+            #!filter of purchase receipt qty per item and validating against confirmation qty
+            #!===============================================================================
+            #!===============================================================================
+            #!===============================================================================
+            purchase_item_data=frappe.db.get_all("Purchase Receipt Item",
+            filters={"parent": visual_inspection_report,"item_code":item_code},
+            fields=["item_code","qty"])
+            if len(purchase_item_data)!=0:
+                purchase_item_qty=purchase_item_data[0].qty
+            else:
+                purchase_item_qty=None
+
+            confirmation_list=frappe.db.get_all("Purchase Receipt Item Wise Batch Wise Confirmation",
+                                                 filters={"visual_inspection_report": visual_inspection_report,
+                                                           "item_code": item_code},
+                                                fields=["qty"])
+
+            #!====================================================
+            #!if no confirmation quantity and purchase quantity then no validation required
+            if len(confirmation_list)>0:
+                confirmed_qty=0
+                for confirmation in confirmation_list:
+                    confirmed_qty+=float(confirmation.qty)
+            else:
+                confirmed_qty=None
+            #!====================================================
+            if purchase_item_qty is not None:
+                if confirmed_qty is not None:
+                    quantity_left_to_confirm=float(purchase_item_qty)-float(confirmed_qty)
+                    if float(qty)>float(quantity_left_to_confirm):
+                        return api_response(status=False, data=[], message="Remaining Confirmation Quantity Exceeds Qty  Visual Inspection Report Qty", status_code=400)
+                else:
+                    if float(qty)>float(purchase_item_qty):
+                        return api_response(status=False, data=[], message="Confirmation Quantity Exceeds Qty  Visual Inspection Report Qty",status_code=400)
+           
+            
+            #!====================================================
+            #!====================================================
+            #!====================================================
             try:
-        # Create a new document for the custom doctype
+            #! Create a new document for the custom doctype
                 doc = frappe.get_doc({
                     "doctype": "Purchase Receipt Item Wise Batch Wise Confirmation",  # Replace with your actual doctype name
                     "visual_inspection_report": visual_inspection_report,
@@ -308,7 +334,7 @@ def create_purchase_receipt_confirmation(
                     "error_message": error_message,
                     "rec_entry_date": rec_entry_date
                 })
-                # Insert the document into the database
+                #! Insert the document into the database
                 doc.insert()
                 frappe.db.commit()
                 return api_response(status=True,data=doc,message="Successfully Created Document",status_code=200)

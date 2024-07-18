@@ -236,7 +236,15 @@ def getAllWorkOrders(timestamp="",limit=10,offset=0):
 
 # #!========================================================================================================>
 @frappe.whitelist(allow_guest=False,methods=["POST"])
-def create_stock_entry_manufacturing_against_work_order(work_order_id="",purpose=""):
+def create_stock_entry_manufacturing_against_work_order(work_order_id="",purpose="",qty=""):
+    if qty=="":
+        return api_response(status_code=400, message=f"Please Enter A Qty", data=[], status=False)
+    try:
+        qty=int(qty)
+    except:
+        return api_response(status_code=400, message=f"Please Enter A Valid Qty", data=[], status=False)
+    if int(qty)<=0:
+        return api_response(status_code=400, message=f"Please Enter A Positive Qty", data=[], status=False)
     if purpose=="":
         return api_response(status_code=400, message=f"Please Enter A Purpose", data=[], status=False)
     if work_order_id=="":
@@ -248,7 +256,7 @@ def create_stock_entry_manufacturing_against_work_order(work_order_id="",purpose
     if work_order_status!="In Process":
         return api_response(status_code=400, message=f"Work Order Must In Process", data=[], status=False)
 
-    stock_entry=make_stock_entry(work_order_id=work_order_id,purpose=purpose)
+    stock_entry=make_stock_entry(work_order_id=work_order_id,purpose=purpose,qty=qty)
     stock_entry_doc=frappe.get_doc(stock_entry)
     stock_entry_doc.insert()
     stock_entry_doc.submit()

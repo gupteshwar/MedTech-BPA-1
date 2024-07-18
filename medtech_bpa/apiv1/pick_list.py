@@ -54,6 +54,25 @@ def getAllPickList(timestamp="",limit=50,offset=0):
            if pick_list_item_data.description:
                 soup = BeautifulSoup(pick_list_item_data.description, 'html.parser')
                 pick_list_item_data.description = soup.get_text() 
+                qty=pick_list_item_data.qty
+                stock_qty=pick_list_item_data.stock_qty
+                picked_qty=pick_list_item_data.picked_qty
+                if qty is not None:
+                     qty=float(qty)
+                     pick_list_item_data.qty=qty
+                if stock_qty is not None:
+                     stock_qty=float(stock_qty)
+                     pick_list_item_data.stock_qty=stock_qty
+                    
+                if picked_qty is not None:
+                     picked_qty=float(picked_qty)
+                     pick_list_item_data.picked_qty=picked_qty  # converting to float to avoid scientific notation
+                
+                # #!to float
+                # "qty": 5e-05,
+                # "stock_qty": 5e-05,
+                # "picked_qty": 5e-05,
+
         pick_list["items"]=pick_list_item
 
         #!Adding item stock
@@ -65,6 +84,7 @@ def getAllPickList(timestamp="",limit=50,offset=0):
         else:
              delivery_note=None  # if no delivery note found set it to None
         pick_list["delivery_note"]=delivery_note
+        
     #!attach
     #!==================================================
     pick_list_list_with_timestamp= frappe.get_all("Pick List",
@@ -96,6 +116,7 @@ def create_pick_list_confirmation(
                         pick_list_date="",
                         customer_code="",
                         item="",
+                        qty="",
                         batch_no="",
                         org_code="",
                         bin_code="",
@@ -110,6 +131,8 @@ def create_pick_list_confirmation(
             
             if item=="":
                 return api_response(status=True, data=[], message="Enter Item Code", status_code=400)
+            if qty=="":
+                 return api_response(status=True, data=[], message="Enter Qty", status_code=400)
             if pick_list=="":
                 return api_response(status=True, data=[], message="Enter Delivery Note", status_code=400)
             if pick_list_date=="":
@@ -123,17 +146,16 @@ def create_pick_list_confirmation(
             try:
                 stock_qty = int(stock_qty)
                 picked_qty=int(picked_qty)
+                qty=int(qty)
             except:
                 return api_response(status=False, data=[], message="Please Enter Proper Qty", status_code=400)
+            if stock_qty<=0 or picked_qty<=0 or qty<=0:
+                 return api_response(status=False, data=[], message="Please Enter Positive Qty", status_code=400)
             try:
                 pick_list_date = datetime.strptime(pick_list_date, '%Y-%m-%d')
             except:
                 return api_response(status=False, data=[], message="Please Enter Proper Dispatch Order Date", status_code=400)
             #!================================================================================================================>
-            confirmation_with_pick_list=frappe.db.get_all("Pick List Item Wise Batch Wise Confirmation",
-                                                          filters={"pick_list":pick_list })
-            if len(confirmation_with_pick_list) !=0:
-                return api_response(status=False, data=[], message="Pick List Item Wise Batch Wise Confirmation Already Exist", status_code=400)
             if not frappe.db.exists("Pick List",pick_list):
                 return api_response(status=False, data=[], message="Pick List Does Not Exist", status_code=400)
             if not frappe.db.exists("Item",item):
@@ -142,7 +164,49 @@ def create_pick_list_confirmation(
                     return api_response(status=False, data=[], message="Customer Does Not Exist", status_code=400)
             if delivery_note!="" and not frappe.db.exists("Delivery Note",delivery_note):
                  return api_response(status=False, data=[], message="Delivery Note Does Not Exist", status_code=400)
-            #!================================================================================================================>
+            
+            #!filter of purchase receipt qty per item and validating against confirmation qty
+            #!===============================================================================
+            #!===============================================================================
+            #!===============================================================================
+            pick_list_item_data=frappe.db.get_all("Pick List Item",filters={"parent":pick_list,"item_code":item},fields=["qty"])
+            if len(pick_list_item_data)!=0:
+                picked_list_item_qty=pick_list_item_data[0].qty
+            else:
+                picked_list_item_qty=None
+
+            confirmation_list=frappe.db.get_all("Pick List Item Wise Batch Wise Confirmation",
+                                                 filters={"pick_list": pick_list,
+                                                           "item": item},
+                                                fields=["qty"])
+
+            #!====================================================
+            #!if no confirmation quantity and purchase quantity then no validation required
+            if len(confirmation_list)>0:
+                confirmed_qty=0
+                for confirmation in confirmation_list:
+                    confirmed_qty+=float(confirmation.qty)
+            else:
+                confirmed_qty=None
+            #!====================================================
+            if picked_list_item_qty is not None:
+                if confirmed_qty is not None:
+                    quantity_left_to_confirm=float(picked_list_item_qty)-float(confirmed_qty)
+                    if float(qty)>float(quantity_left_to_confirm):
+                        return api_response(status=False, data=[], message="Remaining Confirmation Quantity Exceeds Qty  Pick List Qty", status_code=400)
+                else:
+                    if float(qty)>float(picked_list_item_qty):
+                        return api_response(status=False, data=[], message="Confirmation Quantity Exceeds Qty Pick List Qty",status_code=400)
+           
+            
+            #!====================================================
+            #!====================================================
+            #!====================================================
+            
+            #!====================================================
+            #!====================================================
+            #!====================================================
+            
             try:
        
                 doc = frappe.get_doc({
@@ -155,6 +219,7 @@ def create_pick_list_confirmation(
                             "org_code": org_code,
                             "bin_code": bin_code,
                             "sub_inventory": sub_inventory,
+                            "qty":qty,
                             "stock_qty": stock_qty,
                             "picked_qty":picked_qty,
                             "process_flag": process_flag,

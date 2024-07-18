@@ -17,6 +17,7 @@
   "organisation_code",
   "bin_code",
   "batch_code",
+  "qty",
   "stock_qty",
   "picked_qty",
   "process_flag",
@@ -102,11 +103,16 @@
    "fieldtype": "Link",
    "label": "Delivery Note",
    "options": "Delivery Note"
+  },
+  {
+   "fieldname": "qty",
+   "fieldtype": "Float",
+   "label": "Qty"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-07-11 12:55:10.750662",
+ "modified": "2024-07-17 20:53:26.077052",
  "modified_by": "Administrator",
  "module": "MedTech-BPA",
  "name": "Pick List Item Wise Batch Wise Confirmation",
