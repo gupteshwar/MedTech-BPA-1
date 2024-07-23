@@ -58,14 +58,14 @@ def getAllPickList(timestamp="",limit=50,offset=0):
                 stock_qty=pick_list_item_data.stock_qty
                 picked_qty=pick_list_item_data.picked_qty
                 if qty is not None:
-                     qty=float(qty)
+                     qty=format(float(qty), 'f')
                      pick_list_item_data.qty=qty
                 if stock_qty is not None:
-                     stock_qty=float(stock_qty)
+                     stock_qty=format(float(stock_qty), 'f')
                      pick_list_item_data.stock_qty=stock_qty
                     
                 if picked_qty is not None:
-                     picked_qty=float(picked_qty)
+                     picked_qty=format(float(picked_qty), 'f')
                      pick_list_item_data.picked_qty=picked_qty  # converting to float to avoid scientific notation
                 
                 # #!to float
@@ -120,8 +120,6 @@ def create_pick_list_confirmation(
                         batch_no="",
                         org_code="",
                         bin_code="",
-                        stock_qty="",
-                        picked_qty="",
                         process_flag=0,
                         error_desc="",
                         sub_inventory="",
@@ -129,6 +127,8 @@ def create_pick_list_confirmation(
                         delivery_note="",
                       ):
             
+
+            #!=======================================================================================
             if item=="":
                 return api_response(status=True, data=[], message="Enter Item Code", status_code=400)
             if qty=="":
@@ -137,19 +137,13 @@ def create_pick_list_confirmation(
                 return api_response(status=True, data=[], message="Enter Delivery Note", status_code=400)
             if pick_list_date=="":
                 return api_response(status=True, data=[], message="Enter Dispatch Order Number", status_code=400)
-            if stock_qty=="":
-                return api_response(status=True, data=[], message="Enter Qty", status_code=400)
-            if picked_qty=="":
-                return api_response(status=True, data=[], message="Enter Qty", status_code=400)
             if process_flag=="":
                 return api_response(status=True, data=[], message="Enter Process Flag", status_code=400)
             try:
-                stock_qty = int(stock_qty)
-                picked_qty=int(picked_qty)
                 qty=int(qty)
             except:
                 return api_response(status=False, data=[], message="Please Enter Proper Qty", status_code=400)
-            if stock_qty<=0 or picked_qty<=0 or qty<=0:
+            if  qty<=0:
                  return api_response(status=False, data=[], message="Please Enter Positive Qty", status_code=400)
             try:
                 pick_list_date = datetime.strptime(pick_list_date, '%Y-%m-%d')
@@ -165,6 +159,16 @@ def create_pick_list_confirmation(
             if delivery_note!="" and not frappe.db.exists("Delivery Note",delivery_note):
                  return api_response(status=False, data=[], message="Delivery Note Does Not Exist", status_code=400)
             
+
+            #!if item exist in pick list
+            item_in_pick_list=frappe.db.get_all("Pick List Item",filters={
+                 "parent": pick_list,
+                 "item_code": item
+                 }
+             )
+            if len(item_in_pick_list)==0:
+                 return api_response(status=False, data=[], message="Item Doesn't Exist in Pick List", status_code=400)
+            
             #!filter of purchase receipt qty per item and validating against confirmation qty
             #!===============================================================================
             #!===============================================================================
@@ -176,7 +180,7 @@ def create_pick_list_confirmation(
                 picked_list_item_qty=None
 
             confirmation_list=frappe.db.get_all("Pick List Item Wise Batch Wise Confirmation",
-                                                 filters={"pick_list": pick_list,
+                                                filters={"pick_list": pick_list,
                                                            "item": item},
                                                 fields=["qty"])
 
@@ -220,8 +224,6 @@ def create_pick_list_confirmation(
                             "bin_code": bin_code,
                             "sub_inventory": sub_inventory,
                             "qty":qty,
-                            "stock_qty": stock_qty,
-                            "picked_qty":picked_qty,
                             "process_flag": process_flag,
                             "error_desc": error_desc,
                             "picked_list_purpose":pick_list_purpose,

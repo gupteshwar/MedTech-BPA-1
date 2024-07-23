@@ -253,9 +253,24 @@ def create_stock_entry_manufacturing_against_work_order(work_order_id="",purpose
         return api_response(status_code=400, message=f"Please Enter A Valid Work Order", data=[], status=False)
     work_order=frappe.db.get_all("Work Order",filters={"name":work_order_id},fields=["*"])
     work_order_status=work_order[0].get("status")
-    if work_order_status!="In Process":
+    work_order_qty=float(work_order[0].get("qty"))
+    produced_qty=float(work_order[0].get("produced_qty"))
+    if work_order_status=="Not Started":
         return api_response(status_code=400, message=f"Work Order Must In Process", data=[], status=False)
+    
+    #!qty validation
+    if qty>work_order_qty:
+        return api_response(status_code=400, message=f"Work Order Qty Exceeded", data=[], status=False)
+    
+    #!in work order qty
+    #!check quantities left against the work order 
+    qty_left =work_order_qty-produced_qty
+    if qty>qty_left:
+        return api_response(status_code=400, message=f"Qty left to produce exceed", data=[], status=False)
 
+    # stock_entry_list=stock_entry_list_type1+stock_entry_list_type2
+    # stock_entry_list=list(set(stock_entry_list))
+    #!in stock entry qty
     stock_entry=make_stock_entry(work_order_id=work_order_id,purpose=purpose,qty=qty)
     stock_entry_doc=frappe.get_doc(stock_entry)
     stock_entry_doc.insert()

@@ -50,11 +50,12 @@ def getAllDeliveryNote(timestamp="",limit=50,offset=0):
     for delivery_note in delivery_note_list:
         #!=============================================
         #!parsing addresses
-        if delivery_note.billing_address:
-            soup = BeautifulSoup(delivery_note.billing_address, 'html.parser')
-            delivery_note.billing_address = soup.get_text()
-            soup= BeautifulSoup(delivery_note.shipping_address, 'html.parser')
-            delivery_note.shipping_address=soup.get_text()
+        if delivery_note.billing_address is not None and len(delivery_note.billing_address)>0:
+            soup1 = BeautifulSoup(delivery_note.billing_address, 'html.parser')
+            delivery_note.billing_address = soup1.get_text()
+        if delivery_note.shipping_address is not None and len(delivery_note.shipping_address)>0:
+            soup2= BeautifulSoup(delivery_note.shipping_address, 'html.parser')
+            delivery_note.shipping_address=soup2.get_text()
         #!================================================
         #!2 add customer_details    
         #!==========================================
@@ -80,7 +81,7 @@ def getAllDeliveryNote(timestamp="",limit=50,offset=0):
         #!=============================================================================
         #!Parsing Description
         for delivery_note_items in delivery_note_child_table:
-           if delivery_note_items.description:
+           if delivery_note_items.description and len(delivery_note_items.description) > 0:
                 soup = BeautifulSoup(delivery_note_items.description, 'html.parser')
                 delivery_note_items.description = soup.get_text() 
         #!==============================================================================

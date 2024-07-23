@@ -238,7 +238,8 @@ def getAllpurchaseReturn(timestamp="",limit=50,offset=0):
                         
    
 
-
+#!=================================================================================
+#!=================================================================================
 @frappe.whitelist(allow_guest=False,methods=["POST"])
 def create_purchase_receipt_confirmation(
                       visual_inspection_report="",
@@ -279,10 +280,21 @@ def create_purchase_receipt_confirmation(
             if not frappe.db.exists("Item",item_code):
                 return api_response(status=False, data=[], message="Item Does Not Exist", status_code=400)
             
+            #!if item exists in purchase receipts 
+
+            purchase_receipt_in_items=frappe.db.get_all("Purchase Receipt Item",filters={
+                "parent": visual_inspection_report,"item_code":item_code},
+            )
+            if len(purchase_receipt_in_items)==0:
+                return api_response(status=False, data=[], message="Item  Doesn't Already Exists in Purchase Receipt", status_code=400)
+
+            
+            
             #!filter of purchase receipt qty per item and validating against confirmation qty
             #!===============================================================================
             #!===============================================================================
             #!===============================================================================
+            #!================================================================================
             purchase_item_data=frappe.db.get_all("Purchase Receipt Item",
             filters={"parent": visual_inspection_report,"item_code":item_code},
             fields=["item_code","qty"])
@@ -296,7 +308,7 @@ def create_purchase_receipt_confirmation(
                                                            "item_code": item_code},
                                                 fields=["qty"])
 
-            #!====================================================
+            #!=============================================================================
             #!if no confirmation quantity and purchase quantity then no validation required
             if len(confirmation_list)>0:
                 confirmed_qty=0

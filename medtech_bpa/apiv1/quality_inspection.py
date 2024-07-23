@@ -6,14 +6,14 @@ def create_quality_inspection(data):
     try:
         data = frappe.parse_json(data)
         
-        # Validate Purchase Receipt
+        #! Validate Purchase Receipt=========================================================================>
         purchase_receipt = data.get("purchase_receipt")
         if not purchase_receipt :
            return api_response(status_code=400, message="Purchase Receipt is required", data=[], status=False)
         if not frappe.db.exists("Purchase Receipt", purchase_receipt):
            return api_response(status_code=400, message="Purchase Receipt ID invalid", data=[], status=False)
         
-        # Validate required fields
+        #! Validate required fields==========================================================================>
         inspected_by = data.get("inspected_by")
         if not inspected_by:
             return api_response(status_code=400, message="Inspector name is required", data=[], status=False)
@@ -47,6 +47,64 @@ def create_quality_inspection(data):
             return api_response(status_code=400, message="Status is required", data=[], status=False)
         batch_no=data.get('batch_no')
         qc_status=data.get('qc_status')
+
+        #!if item is in Purchase Receipt
+        
+        
+        purchase_receipt_in_items=frappe.db.get_all("Purchase Receipt Item",filters={
+            "parent": purchase_receipt,
+            "item_code":item_code},
+        fields=["item_code","supplier_part_no","item_name","description",
+                "uom","received_qty","qty","rejected_qty","serial_no",
+                "serial_and_batch_bundle","rejected_serial_and_batch_bundle",
+                "batch_no"
+                ]
+        )
+        if len(purchase_receipt_in_items)==0:
+            return api_response(status=False, data=[], 
+                                message="Item  Doesn't Exists in Purchase Receipt/GRN/Visual Inspection Report", status_code=400) 
+
+        
+        #!quantity validation===============================================================================>
+        purchase_item_qty=int(purchase_receipt_in_items[0].get("qty"))
+        if billed_qty>purchase_item_qty:
+            return api_response(status=False, data=[], 
+                                message="Billed Quantity Exceeds Item Quantity in in Purchase Receipt/GRN/Visual Inspection Report", status_code=400)
+
+        if sample_size>purchase_item_qty:
+            return api_response(status=False, data=[], 
+                                message="Sample Size Exceeds Item Quantity in Purchase Receipt", status_code=400)
+        if rejected_qty>purchase_item_qty:
+            return api_response(status=False, data=[], 
+                                message="Rejected Quantity Exceeds Item Quantity in Purchase Receipt", status_code=400)
+        if billed_qty> sample_size or rejected_qty > sample_size:
+            return api_response(status=False, data=[], 
+                                message="Billed / Rejected Quantity Exceeds Sample Size", status_code=400)
+        if billed_qty + rejected_qty> sample_size:
+            return api_response(status=False, data=[], 
+                                message="Billed + Rejected Quantity Exceeds Sample Size", status_code=400)
+
+        #!==================================================================
+        #!quantity left to confirm
+        total_quality_inspection_item_quantity=0
+        quality_inspection_item_quantity=frappe.db.get_all("Quality Inspection",
+            filters={
+            "inspection_type": "Incoming",
+            "reference_type": "Purchase Receipt",
+            "reference_name": purchase_receipt,
+            "item_code": item_code},
+            fields=["billed_qty","rejected_quantity"])
+        
+        for item in quality_inspection_item_quantity:
+            total_quality_inspection_item_quantity+=int(item.get("billed_qty"))+int(item.get("rejected_quantity"))
+        
+        quantity_left_for_qc=purchase_item_qty-total_quality_inspection_item_quantity
+        if billed_qty>quantity_left_for_qc:
+            return api_response(status=False, data=[], 
+                                message="Quantity left to confirm exceeds Item Quantity in Purchase Receipt", status_code=400)
+        #!============================
+        #!============================
+        #!============================
         doc = frappe.get_doc({
             "doctype": "Quality Inspection",
             "inspection_type": "Incoming",
@@ -62,13 +120,12 @@ def create_quality_inspection(data):
             "rejected_quantity": rejected_qty,
             "qc_status":qc_status,
             "status":status})
-
-            
-        
         doc.insert()
         doc.submit()
         frappe.db.commit()
-        
+        #!============================
+        #!============================
+        #!============================
         return api_response(status_code=200, message="Quality Inspection Created Successfully", data=doc, status=True)
     except Exception as e:
         return api_response(status_code=400, message=f"Operation error {e}", data=[], status=False)
