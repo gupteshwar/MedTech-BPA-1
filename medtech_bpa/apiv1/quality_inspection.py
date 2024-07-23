@@ -79,12 +79,12 @@ def create_quality_inspection(data):
         if rejected_qty>purchase_item_qty:
             return api_response(status=False, data=[], 
                                 message="Rejected Quantity Exceeds Item Quantity in Purchase Receipt", status_code=400)
-        if billed_qty> sample_size or rejected_qty > sample_size:
+        if sample_size>billed_qty:
             return api_response(status=False, data=[], 
-                                message="Billed / Rejected Quantity Exceeds Sample Size", status_code=400)
-        if billed_qty + rejected_qty> sample_size:
+                                message="Billed / Rejected Quantity Less than Sample Size", status_code=400)
+        if billed_qty + rejected_qty> purchase_item_qty:
             return api_response(status=False, data=[], 
-                                message="Billed + Rejected Quantity Exceeds Sample Size", status_code=400)
+                                message="Billed + Rejected Quantity Exceeds Purchase Receipt  Qty", status_code=400)
 
         #!==================================================================
         #!quantity left to confirm

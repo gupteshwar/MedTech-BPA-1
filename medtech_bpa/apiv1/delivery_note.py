@@ -16,7 +16,7 @@ def getAllDeliveryNote(timestamp="",limit=50,offset=0):
         return api_response(status=False, data=[], message="Please Enter Proper Limit and Offset", status_code=400)
     #!limit and offset upper limit validation
     if limit > 200 or limit < 0 or offset<0:
-        return api_response(status=False, data=[], message="Limit exceeded 500", status_code=400)
+        return api_response(status=False, data=[], message="Limit exceeded 200", status_code=400)
     #!timestamp non empty validation
     if timestamp is None or timestamp =="":
         return api_response(status=False, data=[], message="Please Enter a timestamp", status_code=400)
@@ -173,7 +173,7 @@ def getAllSalesReturn(timestamp="",limit=50,offset=0):
         return api_response(status=False, data=[], message="Please Enter Proper Limit and Offset", status_code=400)
     #!limit and offset upper limit validation
     if limit > 200 or limit < 0 or offset<0:
-        return api_response(status=False, data=[], message="Limit exceeded 500", status_code=400)
+        return api_response(status=False, data=[], message="Limit exceeded 200", status_code=400)
     #!timestamp non empty validation
     if timestamp is None or timestamp =="":
         return api_response(status=False, data=[], message="Please Enter a timestamp", status_code=400)
