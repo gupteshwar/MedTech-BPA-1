@@ -209,6 +209,7 @@ def getAllSalesReturn(timestamp="",limit=50,offset=0):
         if delivery_note.billing_address:
             soup = BeautifulSoup(delivery_note.billing_address, 'html.parser')
             delivery_note.billing_address = soup.get_text()
+        if delivery_note.shipping_address:
             soup= BeautifulSoup(delivery_note.shipping_address, 'html.parser')
             delivery_note.shipping_address=soup.get_text()
         #!================================================
