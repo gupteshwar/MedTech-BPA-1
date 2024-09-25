@@ -35,7 +35,21 @@ def getAllDeliveryNote(timestamp="",limit=50,offset=0):
                 "address_display as billing_address",
                 "shipping_address",
                 "pick_list",
-                "modified as updated_at",],
+                "transporter",
+                "vehicle_no",
+                "driver",
+                "mode_of_transport",
+                "gst_vehicle_type",
+                "lr_no",
+                "gst_transporter_id",
+                "custom_consignee_name as consignee_name",
+                "custom_consignee_city as consignee_city",
+                "custom_consignee_state as consignee_state",
+                "custom_consignee_country as consignee_country",
+                "custom_consignee_postal_code as consignee_postal_code",
+                "custom_consignee_contact as consignee_contact",
+                "custom_consignee_address_ as consignee_address",
+                "modified as updated_at"],
             
             filters={
                 'modified':['>',timestamp],
@@ -46,7 +60,11 @@ def getAllDeliveryNote(timestamp="",limit=50,offset=0):
             order_by='-modified'
         )
    
-   
+    for delivery_note in delivery_note_list:
+        delivery_note_id=delivery_note.get("id")
+        linked_sales_invoice=frappe.db.get_all("Sales Invoice",filters={"delivery_note":delivery_note_id},fields=["name","posting_date"])
+        delivery_note["sales_invoice_data"]=linked_sales_invoice
+
     for delivery_note in delivery_note_list:
         #!=============================================
         #!parsing addresses
@@ -119,23 +137,6 @@ def getAllDeliveryNote(timestamp="",limit=50,offset=0):
 
         #!Adding item stock
 
-        
-    
-      
-        
-        #!adding sales invoice date and id
-        if len(delivery_note_child_table)!=0:
-            sales_invoice=delivery_note_child_table[0].get("against_sales_invoice")
-            sales_invoice_details=frappe.db.get_all("Sales Invoice",filters={
-                "name":sales_invoice},
-            fields=["posting_date"]
-            )
-            if len(sales_invoice_details) > 0:
-                delivery_note["sales_invoice"]=sales_invoice[0]
-                delivery_note["sales_invoice_date"]=sales_invoice_details[0]["posting_date"]
-            else:
-                delivery_note["sales_invoice"]=""
-                delivery_note["sales_invoice_date"]=""
     #!====================================================================
     delivery_note_list_with_timestamp= frappe.get_all("Delivery Note",
             filters={'modified':['>',timestamp],"is_return":0
@@ -401,8 +402,55 @@ def create_delivery_note_confirmation(
             
             
             
+
+# #!Paginated Get Customer Details API
+# @frappe.whitelist(allow_guest=False,methods=["GET"])
+# def getSalesInvoice(timestamp="",limit=100,offset=0):
+
+#     #TODO 1: limit offset int format check
+#     try:
+#         limit = int(limit)
+#         offset = int(offset)
+#     except:
+#         return api_response(status=False, data=[], message="Please Enter Proper Limit and Offset", status_code=400)
+#     #!limit and offset upper limit validation
+#     if limit > 200 or limit < 0 or offset<0:
+#         return api_response(status=False, data=[], message="Limit exceeded 500", status_code=400)
+#     #!timestamp non empty validation
+#     if timestamp is None or timestamp =="":
+#         return api_response(status=False, data=[], message="Please Enter a timestamp", status_code=400)
+#     #!timestamp format validation
+#     try:
+#         timestamp_datetime=datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
+#     except Exception as e:
+#         return api_response(status=False, data=[], message=f"Please Enter a valid timestamp {e}", status_code=400)
+
+#     item_group_list = frappe.get_all("Sales Invoice",
+#         fields=["name","delivery_note"
+#                 ],
             
+#             filters={
+#                 'modified':['>',timestamp]
+#             },
+#             limit=limit,
+#             start=offset,
+#             order_by='-modified'
+#         )
+#     #!==========================================================================================
+#     #!==========================================================================================
+#     item_group_list_time_stamp = frappe.get_all("Item Group",filters={'modified':['>',timestamp]} )
+#     data_size=len(item_group_list_time_stamp)
+
+#     #!=========================================================================================
+#     if len(item_group_list)==0:
+#         return api_response(status=True, data=[], message="Empty Content", status_code=204)
+#     else:
+#         return api_response(status=True, 
+#                             data=item_group_list, 
+#                             message="Successfully Fetched Item Groups", 
+#                             status_code=200,
+#                             data_size=data_size)
+       
             
 
     
-        
