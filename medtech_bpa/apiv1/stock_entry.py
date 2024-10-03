@@ -277,3 +277,227 @@ def create_stock_entry_manufacturing_against_work_order(work_order_id="",purpose
     stock_entry_doc.submit()
     return api_response(status_code=200, message="Stock Entry Success", data=stock_entry_doc, status=True)
     
+
+#!===================================================================================================================
+#!=================================================================================>
+@frappe.whitelist(allow_guest=False,methods=["GET"])
+def getAllStockEntry(timestamp="",limit=50,offset=0,purpose=""):
+
+    #TODO 1: limit offset int format check
+    try:
+        limit = int(limit)
+        offset = int(offset)
+    except:
+        return api_response(status=False, data=[], message="Please Enter Proper Limit and Offset", status_code=400)
+    #!limit and offset upper limit validation
+    if limit > 200 or limit < 0 or offset<0:
+        return api_response(status=False, data=[], message="Limit exceeded 500", status_code=400)
+    #!timestamp non empty validation
+    if timestamp is None or timestamp =="":
+        return api_response(status=False, data=[], message="Please Enter a timestamp", status_code=400)
+    #!timestamp format validation
+    try:
+        timestamp_datetime=datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
+    except Exception as e:
+        return api_response(status=False, data=[], message=f"Please Enter a valid timestamp {e}", status_code=400)
+
+    #!========================================================================================================================
+    if purpose == "material_transfer_for_manufacture":
+        stock_entry_list = frappe.get_all("Stock Entry",
+            fields=["name","modified as updated_at","posting_date","stock_entry_type","from_warehouse","to_warehouse","docstatus"],
+            filters={
+                    'modified':['>',timestamp],
+                    'stock_entry_type':"Material Transfer for Manufacture"
+                },
+            limit=limit,
+            order_by='-modified',
+            start=offset
+            )
+        stock_entry_list_with_timestamp=frappe.get_all("Stock Entry",
+            fields=["name","modified as updated_at","posting_date","stock_entry_type","from_warehouse","to_warehouse","docstatus"],
+            filters={
+                    'modified':['>',timestamp],
+                    'stock_entry_type':"Material Transfer for Manufacture"})
+    elif purpose == "process_rejections":
+        stock_entry_list = frappe.get_all("Stock Entry",
+            fields=["name","modified as updated_at","posting_date","stock_entry_type","from_warehouse","to_warehouse","docstatus"],
+            filters={
+                    'modified':['>',timestamp],
+                    'stock_entry_type':"Process Rejections"
+                },
+            limit=limit,
+            order_by='-modified',
+            start=offset
+            )
+        stock_entry_list_with_timestamp=frappe.get_all("Stock Entry",
+            fields=["name","modified as updated_at","posting_date","stock_entry_type","from_warehouse","to_warehouse","docstatus"],
+            filters={
+                    'modified':['>',timestamp],
+                    'stock_entry_type':"Process Rejections"})
+    elif purpose == "supplier_rejection":
+        stock_entry_list = frappe.get_all("Stock Entry",
+            fields=["name","modified as updated_at","posting_date","stock_entry_type","from_warehouse","to_warehouse","docstatus"],
+            filters={
+                    'modified':['>',timestamp],
+                    'stock_entry_type':"Supplier Rejection"
+                },
+            limit=limit,
+            order_by='-modified',
+            start=offset
+            )
+        stock_entry_list_with_timestamp=frappe.get_all("Stock Entry",
+            fields=["name","modified as updated_at","posting_date","stock_entry_type","from_warehouse","to_warehouse","docstatus"],
+            filters={
+                    'modified':['>',timestamp],
+                    'stock_entry_type':"Supplier Rejection"}
+            )
+    elif purpose == "material_transfer":
+        stock_entry_list = frappe.get_all("Stock Entry",
+            fields=["name","modified as updated_at","posting_date","stock_entry_type","from_warehouse","to_warehouse","docstatus"],
+            filters={
+                    'modified':['>',timestamp],
+                    'stock_entry_type':"Material Transfer"
+                },
+            limit=limit,
+            order_by='-modified',
+            start=offset
+            )
+        stock_entry_list_with_timestamp=frappe.get_all("Stock Entry",
+            fields=["name","modified as updated_at","posting_date","stock_entry_type","from_warehouse","to_warehouse","docstatus"],
+            filters={
+                    'modified':['>',timestamp],
+                    'stock_entry_type':"Material Transfer"
+                }
+            )
+    elif purpose == "additional_rm":
+        stock_entry_list = frappe.get_all("Stock Entry",
+            fields=["name", "modified as updated_at", "posting_date", "stock_entry_type", "from_warehouse", "to_warehouse", "docstatus"],
+            filters={
+                'modified': ['>', timestamp],
+                'stock_entry_type': "Material Transfer",
+                'from_warehouse': ['like', '%store%'],
+            },
+            or_filters=[
+                {'to_warehouse': ['like', '%WIP%']},
+                {'to_warehouse': ['like', '%Work in Progress%']}
+            ],
+            limit=limit,
+            order_by='-modified',
+            start=offset
+        )
+
+        stock_entry_list_with_timestamp= frappe.get_all("Stock Entry",
+            fields=["name", "modified as updated_at", "posting_date", "stock_entry_type", "from_warehouse", "to_warehouse", "docstatus"],
+            filters={
+                'modified': ['>', timestamp],
+                'stock_entry_type': "Material Transfer",
+                'from_warehouse': ['like', '%store%'],
+            },
+            or_filters=[
+                {'to_warehouse': ['like', '%WIP%']},
+                {'to_warehouse': ['like', '%Work in Progress%']}
+            ],
+        )
+    elif purpose == "return_extra":
+        # First query with limit and pagination
+                stock_entry_list = frappe.get_all("Stock Entry",
+                    fields=["name", "modified as updated_at", "posting_date", "stock_entry_type", "from_warehouse", "to_warehouse", "docstatus"],
+                    filters={
+                        'modified': ['>', timestamp],
+                        'stock_entry_type': "Material Transfer",
+                        'to_warehouse': ['like', '%store%'],
+                    },
+                    or_filters=[
+                        {'from_warehouse': ['like', '%WIP%']},
+                        {'from_warehouse': ['like', '%Work in Progress%']}
+                    ],
+                    limit=limit,
+                    order_by='-modified',
+                    start=offset
+                )
+
+                # Second query without limit (assuming it's meant to get all entries)
+                # Be cautious of the data size if you don't limit the result
+                stock_entry_list_with_timestamp = frappe.get_all("Stock Entry",
+                    fields=["name", "modified as updated_at", "posting_date", "stock_entry_type", "from_warehouse", "to_warehouse", "docstatus"],
+                    filters={
+                        'modified': ['>', timestamp],
+                        'stock_entry_type': "Material Transfer",
+                        'to_warehouse': ['like', '%store%'],
+                    },
+                    or_filters=[
+                        {'from_warehouse': ['like', '%WIP%']},
+                        {'from_warehouse': ['like', '%Work in Progress%']}
+                    ]
+                    # No limit, as you intend to retrieve all records
+                )
+ 
+    else:
+            stock_entry_list = frappe.get_all("Stock Entry",
+                fields=["name","modified as updated_at","posting_date","stock_entry_type","from_warehouse","to_warehouse","docstatus"],
+                filters={
+                        'modified':['>',timestamp],
+
+                    },
+                limit=limit,
+                order_by='-modified',
+                start=offset
+                )
+            stock_entry_list_with_timestamp = frappe.get_all("Stock Entry",
+            filters={'modified':['>',timestamp]})   
+
+    #!Adding Item and Batch Detail
+    for stock_entry in stock_entry_list:
+        stock_entry_id=stock_entry["name"]
+        stock_entry_child_table=frappe.db.get_all("Stock Entry Detail",filters={
+            "parent": stock_entry_id},
+        fields=["item_code","item_name","description","serial_and_batch_bundle","serial_no","batch_no",
+                "uom","qty"]
+        )
+        #!==================================================================================
+        for stock_entry_item_data in stock_entry_child_table:
+            if stock_entry_item_data.description:
+                soup = BeautifulSoup(stock_entry_item_data.description, 'html.parser')
+                stock_entry_item_data.description = soup.get_text()
+        #!=====================================================================================================
+        for stock_entry_items in stock_entry_child_table:
+            batch_id=stock_entry_items["batch_no"]
+            if batch_id is not None:
+                batch_details=frappe.db.get_all("Batch",filters={
+                    "name":batch_id
+                },fields=["name","qty_to_produce","produced_qty","expiry_date","manufacturing_date"])
+                if len(batch_details) > 0:
+                    batch_details=batch_details[0]
+                    qty_to_produce =batch_details["qty_to_produce"]
+                    produced_qty=batch_details["produced_qty"]
+                    expiry_date=batch_details["expiry_date"]
+                    manufacturing_date=batch_details["manufacturing_date"]
+
+                    stock_entry_items["qty_to_produce"]=qty_to_produce
+                    stock_entry_items["produced_qty"]=produced_qty
+                    stock_entry_items["expiry_date"]=expiry_date
+                    stock_entry_items["manufacturing_date"]=manufacturing_date
+                else:
+                    stock_entry_items["qty_to_produce"]=0
+                    stock_entry_items["produced_qty"]=0
+                    stock_entry_items["expiry_date"]=None
+                    stock_entry_items["manufacturing_date"]=None
+            else:
+                stock_entry_items["qty_to_produce"]=0
+                stock_entry_items["produced_qty"]=0
+                stock_entry_items["expiry_date"]=None
+                stock_entry_items["manufacturing_date"]=None
+            
+        stock_entry["item"]=stock_entry_child_table
+    #!==========================================================================================================================
+    data_size=len(stock_entry_list_with_timestamp)
+    
+    #!================================================================================================================================ 
+    if len(stock_entry_list)==0:
+        return api_response(status=True, data=[], message="Empty Content", status_code=204)
+    else:
+        return api_response(status=True, 
+                            data=stock_entry_list,
+                            message="Fetched Stocked Entries Successfully",
+                            status_code=200,
+                            data_size=data_size)   
