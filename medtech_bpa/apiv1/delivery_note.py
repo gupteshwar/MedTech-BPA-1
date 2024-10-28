@@ -4,8 +4,10 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 #!Paginated Get Customer Details API
 @frappe.whitelist(allow_guest=False,methods=["GET"])
-def getAllDeliveryNote(timestamp="",limit=50,offset=0):
+def getAllDeliveryNote(delivery_note_id="",timestamp="",limit=50,offset=0):
     #!STANDARD VALIDATION================================================================>
+   
+
     #TODO 1: limit offset int format check
     try:
         limit = int(limit)
@@ -24,8 +26,8 @@ def getAllDeliveryNote(timestamp="",limit=50,offset=0):
     except Exception as e:
         return api_response(status=False, data=[], message=f"Please Enter a valid timestamp {e}", status_code=400)
 
-    
-    delivery_note_list= frappe.get_all("Delivery Note",
+    if delivery_note_id!="":
+        delivery_note_list= frappe.get_all("Delivery Note",
         fields=["title as title",
                 "is_return",
                 "name as id",
@@ -52,13 +54,46 @@ def getAllDeliveryNote(timestamp="",limit=50,offset=0):
                 "modified as updated_at"],
             
             filters={
-                'modified':['>',timestamp],
+                'name':delivery_note_id,
                 "is_return":0
             },
-            limit=limit,
-            start=offset,
-            order_by='-modified'
         )
+    else:
+
+        delivery_note_list= frappe.get_all("Delivery Note",
+            fields=["title as title",
+                    "is_return",
+                    "name as id",
+                    "customer",
+                    "customer_name",
+                    "posting_date",
+                    "address_display as billing_address",
+                    "shipping_address",
+                    "pick_list",
+                    "transporter",
+                    "vehicle_no",
+                    "driver",
+                    "mode_of_transport",
+                    "gst_vehicle_type",
+                    "lr_no",
+                    "gst_transporter_id",
+                    "custom_consignee_name as consignee_name",
+                    "custom_consignee_city as consignee_city",
+                    "custom_consignee_state as consignee_state",
+                    "custom_consignee_country as consignee_country",
+                    "custom_consignee_postal_code as consignee_postal_code",
+                    "custom_consignee_contact as consignee_contact",
+                    "custom_consignee_address_ as consignee_address",
+                    "modified as updated_at"],
+                
+                filters={
+                    'modified':['>',timestamp],
+                    "is_return":0
+                },
+                limit=limit,
+                start=offset,
+                order_by='-modified'
+            )
    
     for delivery_note in delivery_note_list:
         delivery_note_id=delivery_note.get("id")
