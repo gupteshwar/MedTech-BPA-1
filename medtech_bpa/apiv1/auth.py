@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 import frappe
 from frappe.auth import LoginManager
 
@@ -45,4 +43,3 @@ def get_user_details(user):
 		return user_details
 #!----------------------------------------------------------------------------------------
 #!COMMIT
->>>>>>> UAT
