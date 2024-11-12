@@ -501,3 +501,6 @@ def getAllStockEntry(timestamp="",limit=50,offset=0,purpose=""):
                             message="Fetched Stocked Entries Successfully",
                             status_code=200,
                             data_size=data_size)   
+
+#!----------------------------------------------------------------------------------------
+#!COMMIT

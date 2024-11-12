@@ -129,3 +129,8 @@ def create_quality_inspection(data):
         return api_response(status_code=200, message="Quality Inspection Created Successfully", data=doc, status=True)
     except Exception as e:
         return api_response(status_code=400, message=f"Operation error {e}", data=[], status=False)
+
+
+#!
+#!----------------------------------------------------------------------------------------
+#!COMMIT
