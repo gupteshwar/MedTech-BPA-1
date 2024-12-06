@@ -1,0 +1,31 @@
+{
+ "attach_print": 0,
+ "channel": "Email",
+ "creation": "2024-12-06 10:34:49.687049",
+ "days_in_advance": 0,
+ "docstatus": 0,
+ "doctype": "Notification",
+ "document_type": "Sales Invoice",
+ "enabled": 1,
+ "event": "Value Change",
+ "idx": 0,
+ "is_standard": 1,
+ "message": "<p>Dear Team,</p>\n\n<p>The transport receipt number for the document <strong>{{ doc.name }}</strong> has been updated.</p>\n\n<p>New Transport Receipt Number: <strong>{{ doc.lr_no }}</strong></p>\n\n<p>Please take the necessary actions as required.</p>\n\n<p>Regards,</p>\n<p>{{doc.company}}</p>\n",
+ "message_type": "HTML",
+ "modified": "2024-12-06 13:20:53.154350",
+ "modified_by": "Administrator",
+ "module": "MedTech-BPA",
+ "name": "LR NO Updated",
+ "owner": "Administrator",
+ "recipients": [
+  {
+   "receiver_by_document_field": "contact_email"
+  }
+ ],
+ "send_system_notification": 0,
+ "send_to_all_assignees": 1,
+ "sender": "Noreply",
+ "sender_email": "priyatoshsatpatiofficial@gmail.com",
+ "subject": "{{ doc.name }} {{doc.lr_no}} changed",
+ "value_changed": "lr_no"
+}
