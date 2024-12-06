@@ -7,6 +7,7 @@ def execute(filters=None):
         {"fieldname": "recipient", "label": "Recipient", "fieldtype": "Data", "width": 200},
         {"fieldname": "reference_doctype", "label": "Reference Doctype", "fieldtype": "Data", "width": 150},
         {"fieldname": "reference_name", "label": "Reference Name", "fieldtype": "Data", "width": 150},
+        {"fieldname": "party_type", "label": "Party Type", "fieldtype": "Data", "width": 120},
         {"fieldname": "party", "label": "Party (Customer/Supplier)", "fieldtype": "Data", "width": 200},
         {"fieldname": "eq_status", "label": "Email Queue Status", "fieldtype": "Data", "width": 120},
         {"fieldname": "eqr_status", "label": "Recipient Status", "fieldtype": "Data", "width": 120}
@@ -15,12 +16,12 @@ def execute(filters=None):
     conditions = []
     values = {}
 
-    # If you want to enable filtering by sender or reference_doctype, uncomment and use filters.
-    # if filters.get("sender"):
+    # Uncomment and use filters if needed
+    # if filters and filters.get("sender"):
     #     conditions.append("eq.sender = %(sender)s")
     #     values["sender"] = filters["sender"]
 
-    # if filters.get("reference_doctype"):
+    # if filters and filters.get("reference_doctype"):
     #     conditions.append("eq.reference_doctype = %(reference_doctype)s")
     #     values["reference_doctype"] = filters["reference_doctype"]
 
@@ -28,15 +29,18 @@ def execute(filters=None):
     if conditions:
         where_clause = "WHERE " + " AND ".join(conditions)
 
-    # Joining with relevant doctypes to fetch customer or supplier
-    # For Sales Invoice (si_table), Sales Order (so_table), Delivery Note (dn_table): Use customer
-    # For Purchase Order (po_table): Use supplier
+    # Build and execute the query
     data = frappe.db.sql(f"""
         SELECT
             eq.sender,
             eqr.recipient,
             eq.reference_doctype,
             eq.reference_name,
+            CASE
+                WHEN eq.reference_doctype = 'Purchase Order' THEN 'Supplier'
+                WHEN eq.reference_doctype IN ('Sales Invoice', 'Sales Order', 'Delivery Note') THEN 'Customer'
+                ELSE NULL
+            END AS party_type,
             CASE
                 WHEN eq.reference_doctype = 'Purchase Order' THEN po_table.supplier
                 WHEN eq.reference_doctype = 'Sales Invoice' THEN si_table.customer
@@ -62,6 +66,7 @@ def execute(filters=None):
             ON eq.reference_doctype = 'Purchase Order' AND eq.reference_name = po_table.name
 
         {where_clause}
+        ORDER BY eq.creation DESC
     """, values=values, as_dict=True)
 
     return columns, data
