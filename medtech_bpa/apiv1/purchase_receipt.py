@@ -37,6 +37,7 @@ def getAllpurchaseReceipt(timestamp="",limit=50,offset=0):
                 "posting_date",
                 "supplier_delivery_note",
                 "modified as updated_at",
+                "docstatus",
                 ],
             
             filters={
@@ -149,6 +150,7 @@ def getAllpurchaseReturn(timestamp="",limit=50,offset=0):
                 "posting_date",
                 "supplier_delivery_note",
                 "modified as updated_at",
+                "docstatus",
                 ],
             
             filters={

@@ -51,7 +51,9 @@ def getAllDeliveryNote(delivery_note_id="",timestamp="",limit=50,offset=0):
                 "custom_consignee_postal_code as consignee_postal_code",
                 "custom_consignee_contact as consignee_contact",
                 "custom_consignee_address_ as consignee_address",
-                "modified as updated_at"],
+                "modified as updated_at",
+                "doctstatus",
+                ],
             
             filters={
                 'name':delivery_note_id,
@@ -84,7 +86,8 @@ def getAllDeliveryNote(delivery_note_id="",timestamp="",limit=50,offset=0):
                     "custom_consignee_postal_code as consignee_postal_code",
                     "custom_consignee_contact as consignee_contact",
                     "custom_consignee_address_ as consignee_address",
-                    "modified as updated_at"],
+                    "modified as updated_at",
+                    "docstatus",],
                 
                 filters={
                     'modified':['>',timestamp],
@@ -228,7 +231,8 @@ def getAllSalesReturn(timestamp="",limit=50,offset=0):
                 "address_display as billing_address",
                 "shipping_address",
                 "pick_list",
-                "modified as updated_at",],
+                "modified as updated_at",
+                "docstatus",],
             
             filters={
                 'modified':['>',timestamp],

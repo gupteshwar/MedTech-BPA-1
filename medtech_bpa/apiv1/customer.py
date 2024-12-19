@@ -39,6 +39,7 @@ def getCustomerList(timestamp="",limit=50,offset=0):
                 "customer_primary_address",
                 "primary_address",
                 "modified as updated_at",
+                
                 ],
             
             filters={

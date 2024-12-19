@@ -35,7 +35,8 @@ def getAllPickList(timestamp="",limit=50,offset=0):
                 "material_request",
                 "for_qty",
                 "parent_warehouse",
-                "modified as updated_at",],
+                "modified as updated_at",
+                "docstatus",],
             
             filters={
                 'modified':['>',timestamp],
