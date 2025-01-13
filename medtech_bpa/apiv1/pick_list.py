@@ -35,6 +35,7 @@ def getAllPickList(timestamp="",limit=50,offset=0):
                 "material_request",
                 "for_qty",
                 "parent_warehouse",
+                "creation as created_at",
                 "modified as updated_at",
                 "docstatus",],
             
@@ -276,6 +277,7 @@ def getAllProductionPickList(timestamp="",limit=50,offset=0):
                 "material_request",
                 "parent_warehouse",
                 "modified as updated_at",
+                "creation as created_at",
                 "docstatus",],
             
             filters={
@@ -395,7 +397,6 @@ def create_production_pick_list_confirmation(
                     return api_response(status=False, data=[], message="Customer Does Not Exist", status_code=400)
             if delivery_note!="" and not frappe.db.exists("Delivery Note",delivery_note):
                  return api_response(status=False, data=[], message="Delivery Note Does Not Exist", status_code=400)
-            
 
             #!if item exist in pick list
             item_in_pick_list=frappe.db.get_all("Production Pick List Item",filters={
