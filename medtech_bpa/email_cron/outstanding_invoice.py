@@ -41,15 +41,15 @@ def send_invoice_summary_email():
             email_content += f"<tr><td>{invoice['name']}</td><td>{formatdate(invoice['posting_date'])}</td><td>{invoice['outstanding_amount']}</td></tr>"
         email_content += "</table><br>"
         
-       # print("\n\n ",email_content,"\n\n")
+        # print("\n\n ",email_content,"\n\n")
         # Email subject
         subject = f"Outstanding More Than 30 Days for Customer: {customer}"
         
         # Send email for this customer
-        # frappe.sendmail(
-        #     recipients=recipients,
-        #     subject=subject,
-        #     message=email_content
-        # )
+        frappe.sendmail(
+            recipients=recipients,
+            subject=subject,
+            message=email_content
+        )
         #return {}
         
