@@ -100,15 +100,20 @@ scheduler_events = {
 	# "hourly": [
 	# 	"medtech_bpa.medtech_bpa.utils.delete_email_queues"
 	# ],
-	"daily": [
-        "medtech_bpa.email_cron.outstanding_invoice.send_invoice_summary_email"
-    ],
+	# "daily": [
+    #     "medtech_bpa.email_cron.outstanding_invoice.send_invoice_summary_email"
+    # ],
+	# 	"monthly": [
+	# 		"medtech_bpa.tasks.monthly"
+	# 	]
 	"weekly": [
 		"medtech_bpa.medtech_bpa.utils.delete_email_queues"
-	]
-# 	"monthly": [
-# 		"medtech_bpa.tasks.monthly"
-# 	]
+	],
+	"cron": {
+        "0 16 * * *": [  # Trigger at 4:00 PM daily
+            "medtech_bpa.email_cron.outstanding_invoice.send_invoice_summary_email"
+        ]
+    }
 }
 
 # Testing

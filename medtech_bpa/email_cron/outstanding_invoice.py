@@ -43,57 +43,57 @@ def send_invoice_summary_email():
         frappe.log_error("Noreply email account not found", "send_invoice_summary_email")
         return
     
-   
-    email_content = f"""
-        <p>Dear Team,</p>
-        <p>Please find below the outstanding invoices for that are more than 30 days old:</p>
-        <h3>Outstanding Invoices for (More Than 30 Days)</h3>
-        <table border='1' style='width:100%; border-collapse: collapse;'>
-            <tr>
-                <th>Invoice No</th>
-                <th>Customer</th>
-                <th>Invoice Date</th>
-                <th>Outstanding Amount</th>
-            </tr>
-    """
-    for invoice in invoices:
-        email_content += f"""
-            <tr>
-                <td>{invoice['name']}</td>
-                <td>{invoice['customer']}</td>
-                <td>{formatdate(invoice['posting_date'])}</td>
-                <td>{invoice['outstanding_amount']}</td>
-            </tr>
-        """
-        
-    email_content += """
-        </table>
-        <br>
-        <p>We kindly request you to review and take the necessary action to clear these invoices at the earliest.</p>
-        <p>Thank you for your prompt attention to this matter.</p>
-        <p>Best regards,</p>
-        <p>Medtech Life Pvt. Ltd.</p>
-    """
-        
-        # Email subject
-    subject = f"Outstanding More Than 30 Days"
-    
-    print("\n\nSubject:", subject, "\nContent:", email_content, "\n\n")
-    
-    # Send email for this customer
-    try:
-        print("Sending email...\n")
-        frappe.sendmail(
-            sender=sender_email,
-            recipients=recipients,
-            subject=subject,
-            message=email_content,
-            now=True
-        )
-        print(f"Email sent successfully")
-    except Exception as e:
-        print(f"Error sending email for customer {e}")
-        frappe.log_error(f"Error sending email for customer  {e}", "send_invoice_summary_email")
-    
-    print("All emails processed.")
+    if len(invoices)>0:
+            email_content = f"""
+                <p>Dear Team,</p>
+                <p>Please find below the outstanding invoices for that are more than 30 days old:</p>
+                <h3>Outstanding Invoices for (More Than 30 Days)</h3>
+                <table border='1' style='width:100%; border-collapse: collapse;'>
+                    <tr>
+                        <th>Invoice No</th>
+                        <th>Customer</th>
+                        <th>Invoice Date</th>
+                        <th>Outstanding Amount</th>
+                    </tr>
+            """
+            for invoice in invoices:
+                email_content += f"""
+                    <tr>
+                        <td>{invoice['name']}</td>
+                        <td>{invoice['customer']}</td>
+                        <td>{formatdate(invoice['posting_date'])}</td>
+                        <td>{invoice['outstanding_amount']}</td>
+                    </tr>
+                """
+                
+            email_content += """
+                </table>
+                <br>
+                <p>We kindly request you to review and take the necessary action to clear these invoices at the earliest.</p>
+                <p>Thank you for your prompt attention to this matter.</p>
+                <p>Best regards,</p>
+                <p>Medtech Life Pvt. Ltd.</p>
+            """
+                
+                # Email subject
+            subject = f"Outstanding More Than 30 Days"
+            
+            print("\n\nSubject:", subject, "\nContent:", email_content, "\n\n")
+            
+            # Send email for this customer
+            try:
+                print("Sending email...\n")
+                frappe.sendmail(
+                    sender=sender_email,
+                    recipients=recipients,
+                    subject=subject,
+                    message=email_content,
+                    now=True
+                )
+                print(f"Email sent successfully")
+            except Exception as e:
+                print(f"Error sending email for customer {e}")
+                frappe.log_error(f"Error sending email for customer  {e}", "send_invoice_summary_email")
+            
+            print("All emails processed.")
     # return {}
