@@ -100,7 +100,7 @@ scheduler_events = {
 	# "hourly": [
 	# 	"medtech_bpa.medtech_bpa.utils.delete_email_queues"
 	# ],
-	"daily": [
+	"0 16 * * *": [
         "medtech_bpa.email_cron.outstanding_invoice.send_invoice_summary_email"
     ],
 	"weekly": [
