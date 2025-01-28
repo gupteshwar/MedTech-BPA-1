@@ -77,23 +77,18 @@ def send_invoice_summary_email():
                 
                 # Email subject
             subject = f"Outstanding More Than 30 Days"
-            
-            print("\n\nSubject:", subject, "\nContent:", email_content, "\n\n")
-            
             # Send email for this customer
             try:
-                print("Sending email...\n")
+               
                 frappe.sendmail(
                     sender=sender_email,
                     recipients=recipients,
                     subject=subject,
-                    message=email_content,
-                    now=True
+                    message=email_content
                 )
                 print(f"Email sent successfully")
             except Exception as e:
                 print(f"Error sending email for customer {e}")
                 frappe.log_error(f"Error sending email for customer  {e}", "send_invoice_summary_email")
-            
             print("All emails processed.")
     # return {}
