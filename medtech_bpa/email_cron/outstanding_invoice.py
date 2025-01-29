@@ -1,7 +1,8 @@
 import frappe
 from frappe.utils import nowdate, add_days, formatdate
 
-@frappe.whitelist()
+
+@frappe.whitelist(allow_guest=True)
 def send_invoice_summary_email():
     # Calculate the target date (30 days before today)
     target_date = add_days(nowdate(), -30)
@@ -20,13 +21,6 @@ def send_invoice_summary_email():
     
     print("Invoices:", invoices)
     
-    # Group invoices by customer
-    # grouped_invoices = {}
-    # for invoice in invoices:
-    #     customer = invoice["customer"]
-    #     if customer not in grouped_invoices:
-    #         grouped_invoices[customer] = []
-    #     grouped_invoices[customer].append(invoice)
     
     # Recipients for the email
     recipients = [
@@ -34,16 +28,13 @@ def send_invoice_summary_email():
         "sales2@medtechlife.com", 
         "accounts6@medtechlife.com",
         "priyatosh.s@indictranstech.com", 
-        "pradip.s@indictranstech.com"
+        "pradip.s@indictranstech.com",
+        "priyatoshs.indictrans@gmail.com"
     ]
     
     # Fetch the sender email dynamically from the "Noreply" Email Account
     sender_email = frappe.db.get_value("Email Account", {"name": "Noreply"}, "email_id")
-    if not sender_email:
-        frappe.log_error("Noreply email account not found", "send_invoice_summary_email")
-        return
-    
-    if len(invoices)>0:
+    if sender_email is not None and  len(invoices)>0:
             email_content = f"""
                 <p>Dear Team,</p>
                 <p>Please find below the outstanding invoices for that are more than 30 days old:</p>
@@ -79,7 +70,6 @@ def send_invoice_summary_email():
             subject = f"Outstanding More Than 30 Days"
             # Send email for this customer
             try:
-               
                 frappe.sendmail(
                     sender=sender_email,
                     recipients=recipients,
@@ -87,8 +77,11 @@ def send_invoice_summary_email():
                     message=email_content
                 )
                 print(f"Email sent successfully")
+                return {"invoices": invoices, "recipients": recipients, "sender_email": sender_email}
             except Exception as e:
                 print(f"Error sending email for customer {e}")
                 frappe.log_error(f"Error sending email for customer  {e}", "send_invoice_summary_email")
-            print("All emails processed.")
-    # return {}
+                return {"invoices": invoices, "recipients": recipients, "sender_email": sender_email}
+            #print("All emails processed.")
+
+    
