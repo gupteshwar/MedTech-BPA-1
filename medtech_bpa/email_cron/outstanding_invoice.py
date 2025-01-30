@@ -85,6 +85,8 @@ def send_invoice_summary_email():
                 return {"error": str(e)}
     
     else:
-        return {"sender_email": sender_email, "invoices": invoices}      
+        return {"msg":"email not triggered",
+                "sender_email": sender_email, 
+                "invoices": invoices}      
 
     
