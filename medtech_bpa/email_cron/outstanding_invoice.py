@@ -34,7 +34,7 @@ def send_invoice_summary_email():
     
     # Fetch the sender email dynamically from the "Noreply" Email Account
     sender_email = frappe.db.get_value("Email Account", {"name": "Noreply"}, "email_id")
-    if sender_email is not None and  len(invoices)>0:
+    if sender_email and len(invoices)>0:
             email_content = f"""
                 <p>Dear Team,</p>
                 <p>Please find below the outstanding invoices for that are more than 30 days old:</p>
@@ -74,14 +74,17 @@ def send_invoice_summary_email():
                     sender=sender_email,
                     recipients=recipients,
                     subject=subject,
-                    message=email_content
+                    message=email_content,
+                    now=True
                 )
                 print(f"Email sent successfully")
                 return {"invoices": invoices, "recipients": recipients, "sender_email": sender_email}
             except Exception as e:
                 print(f"Error sending email for customer {e}")
                 frappe.log_error(f"Error sending email for customer  {e}", "send_invoice_summary_email")
-                return {"invoices": invoices, "recipients": recipients, "sender_email": sender_email}
-            #print("All emails processed.")
+                return {"error": str(e)}
+    
+    else:
+        return {"sender_email": sender_email, "invoices": invoices}      
 
     
