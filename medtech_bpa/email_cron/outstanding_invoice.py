@@ -81,7 +81,6 @@ def send_invoice_summary_email():
                 recipients=recipients,
                 subject=subject,
                 message=email_content,
-                now=True
             )
             print("Email sent successfully")
             return {"invoices": invoices, "recipients": recipients, "sender_email": sender_email}

@@ -118,7 +118,7 @@ scheduler_events = {
 		"medtech_bpa.medtech_bpa.utils.delete_email_queues"
 	],
 	"cron": {
-        "30 16 * * *": [  # Trigger at 4:00 PM daily
+        "30 18 * * *": [  # Trigger at 4:00 PM daily
             "medtech_bpa.email_cron.outstanding_invoice.send_invoice_summary_email"
         ]
     }
