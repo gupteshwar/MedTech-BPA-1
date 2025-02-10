@@ -76,14 +76,26 @@ def send_invoice_summary_email():
 
         # Send email
         try:
-            frappe.sendmail(
-                sender=sender_email,
-                recipients=recipients,
-                subject=subject,
-                message=email_content,
-            )
-            print("Email sent successfully")
-            return {"invoices": invoices, "recipients": recipients, "sender_email": sender_email}
+            email_summary_log=frappe.db.get_list("Invoice Summary Email Log",filters={
+                "email_log_date":nowdate()
+            })
+            if len(email_summary_log)==0:
+                
+                frappe.sendmail(
+                    sender=sender_email,
+                    recipients=recipients,
+                    subject=subject,
+                    message=email_content,
+                )
+                print("Email sent successfully")
+                # Log the email summary
+                email_summary = frappe.new_doc("Invoice Summary Email Log")
+                email_summary.email_log_date = nowdate()
+                email_summary.save(ignore_permissions=True)
+                return {"invoices": invoices, "recipients": recipients, "sender_email": sender_email}
+            else:
+                print("Email already sent for today")
+                return {"msg": "Email already sent for today", "sender_email": sender_email, "invoices": invoices, "recipients": recipients}
         except Exception as e:
             print(f"Error sending email: {e}")
             frappe.log_error(f"Error sending email: {e}", "send_invoice_summary_email")

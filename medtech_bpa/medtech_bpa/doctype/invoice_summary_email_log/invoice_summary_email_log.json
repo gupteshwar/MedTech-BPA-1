@@ -1,36 +1,45 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2025-01-30 14:40:51.986936",
+ "autoname": "format:{email_log_date}-{#}",
+ "creation": "2025-02-10 10:58:14.659005",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "recipient"
+  "email_log_date",
+  "email_content"
  ],
  "fields": [
   {
-   "fieldname": "recipient",
-   "fieldtype": "Table",
-   "label": "Recipient ",
-   "options": "Outstanding Invoice Recipients",
+   "fieldname": "email_log_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Email Log Date",
    "reqd": 1
+  },
+  {
+   "fieldname": "email_content",
+   "fieldtype": "HTML",
+   "label": "Email Content"
   }
  ],
  "index_web_pages_for_search": 1,
- "issingle": 1,
  "links": [],
- "modified": "2025-02-10 11:08:38.071614",
+ "modified": "2025-02-10 11:03:19.373256",
  "modified_by": "Administrator",
  "module": "MedTech-BPA",
- "name": "Outstanding Invoice Email Settings",
+ "name": "Invoice Summary Email Log",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
    "create": 1,
    "delete": 1,
    "email": 1,
+   "export": 1,
    "print": 1,
    "read": 1,
+   "report": 1,
    "role": "System Manager",
    "share": 1,
    "write": 1
