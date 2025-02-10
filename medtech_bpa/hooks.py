@@ -75,7 +75,7 @@ app_license = "MIT"
 # 	"Event": "frappe.desk.doctype.event.event.has_permission",
 # }
 
-# Document Events
+# Document Eventas
 # ---------------
 # Hook on document methods and events
 
@@ -90,7 +90,7 @@ app_license = "MIT"
 # Scheduled Tasks
 # ---------------
 
-scheduler_events = {
+#scheduler_events = {
 # 	"all": [
 # 		"medtech_bpa.tasks.all"
 # 	],
@@ -100,14 +100,29 @@ scheduler_events = {
 	# "hourly": [
 	# 	"medtech_bpa.medtech_bpa.utils.delete_email_queues"
 	# ],
+	# 	"monthly": [
+	# 		"medtech_bpa.tasks.monthly"
+	# 	]
+# 	"weekly": [
+# 		"medtech_bpa.medtech_bpa.utils.delete_email_queues"
+# 	],
+# 	"cron": {
+#         "0 16 * * *": [  # Trigger at 4:00 PM daily
+#             "medtech_bpa.email_cron.outstanding_invoice.send_invoice_summary_email"
+#         ]
+#     }
+# }
+scheduler_events = {
+	
 	"weekly": [
 		"medtech_bpa.medtech_bpa.utils.delete_email_queues"
-	]
-# 	"monthly": [
-# 		"medtech_bpa.tasks.monthly"
-# 	]
+	],
+	"cron": {
+        "30 16 * * *": [  # Trigger at 4:00 PM daily
+            "medtech_bpa.email_cron.outstanding_invoice.send_invoice_summary_email"
+        ]
+    }
 }
-
 # Testing
 # -------
 

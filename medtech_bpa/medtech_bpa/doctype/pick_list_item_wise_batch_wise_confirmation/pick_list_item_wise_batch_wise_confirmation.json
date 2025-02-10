@@ -7,6 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "production_pick_list",
+  "production_pick_list",
   "pick_list_date",
   "delivery_note",
   "picked_list_purpose",
@@ -21,6 +22,8 @@
   "stock_qty",
   "picked_qty",
   "process_flag",
+  "error_desc",
+  "pick_list"
   "error_desc",
   "pick_list"
  ],
@@ -109,6 +112,12 @@
    "fieldname": "qty",
    "fieldtype": "Float",
    "label": "Qty"
+  },
+  {
+   "fieldname": "production_pick_list",
+   "fieldtype": "Link",
+   "label": "Production Pick List",
+   "options": "Production Pick List"
   },
   {
    "fieldname": "production_pick_list",

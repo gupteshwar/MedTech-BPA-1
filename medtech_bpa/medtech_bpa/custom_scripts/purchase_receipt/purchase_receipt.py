@@ -18,10 +18,10 @@ def validate(doc, method):
 			doc.return_for_warehouse = "Credit Note"
 		else:
 			doc.return_for_warehouse = ''
-
+	po_restriction(doc)
 	# fix variable rate
 	set_po_item_rate(doc)
-
+	
 	if doc.items:
 		if doc.is_return != 1 and doc.get('__islocal')!= 1:
 			qc_disable_items = get_qc_disable_items(doc.supplier)
@@ -393,4 +393,17 @@ def make_material_transfer(items,doc, target_warehouse):
 				frappe.db.commit()				
 	except Exception as e:
 		raise e
-				
+
+
+def po_restriction(doc):
+        purchase_restriction = frappe.get_single("Purchase Restriction")
+        if  purchase_restriction:
+            print("purchase_restriction",purchase_restriction)
+            restricted_branch = [row.branch for row in purchase_restriction.get("branch_restriction", []) if row.branch]
+            restricted_branch=set(restricted_branch)
+            if doc.branch in restricted_branch and len(doc.items)>0:
+                purchase_order=doc.items[0].purchase_order
+                if not purchase_order:
+                   frappe.throw("Purchase Order is mandatory for this branch")
+
+       		

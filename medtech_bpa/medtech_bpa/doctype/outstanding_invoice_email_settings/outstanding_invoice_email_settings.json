@@ -1,0 +1,42 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-01-30 14:40:51.986936",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "recipient"
+ ],
+ "fields": [
+  {
+   "fieldname": "recipient",
+   "fieldtype": "Table",
+   "label": "Recipient ",
+   "options": "Outstanding Invoice Recipients",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-02-10 11:08:38.071614",
+ "modified_by": "Administrator",
+ "module": "MedTech-BPA",
+ "name": "Outstanding Invoice Email Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
