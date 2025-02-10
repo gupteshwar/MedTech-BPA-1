@@ -91,6 +91,7 @@ def send_invoice_summary_email():
                 # Log the email summary
                 email_summary = frappe.new_doc("Invoice Summary Email Log")
                 email_summary.email_log_date = nowdate()
+                email_summary.email_content=email_content
                 email_summary.save(ignore_permissions=True)
                 return {"invoices": invoices, "recipients": recipients, "sender_email": sender_email}
             else:
