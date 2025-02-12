@@ -77,10 +77,38 @@ def send_invoice_summary_email():
                     <td>{invoice['name']}</td>
                     <td>{invoice['customer']}</td>
                     <td>{formatdate(invoice['posting_date'])}</td>
-                    <td>{invoice['outstanding_amount']}</td>
+                    <td>{invoice['outstanding_amount']} {invoice['currency']}</td>
                 </tr>
             """
-
+        email_content += f"""
+            <p><strong>Total Outstanding Amount: {total_outstanding_amount} {currency}</strong></p>
+        """
+        # Calculate customer-wise total outstanding amount
+        customer_totals = {}
+        for invoice in invoices:
+            customer = invoice['customer']
+            if customer not in customer_totals:
+                customer_totals[customer] = 0
+            customer_totals[customer] += invoice['outstanding_amount']
+        # Append customer-wise totals to the email content
+        email_content += """
+            <h3>Customer-wise Outstanding Totals</h3>
+            <table border='1' style='width:100%; border-collapse: collapse;'>
+            <tr>
+                <th>Customer</th>
+                <th>Total Outstanding Amount</th>
+            </tr>
+        """
+        for customer, total in customer_totals.items():
+            email_content += f"""
+            <tr>
+                <td>{customer}</td>
+                <td>{total} {currency}</td>
+            </tr>
+            """
+        email_content += """
+            </table>
+        """
         email_content += """
             </table>
             <br>
@@ -94,9 +122,7 @@ def send_invoice_summary_email():
         total_outstanding_amount = sum(invoice['outstanding_amount'] for invoice in invoices)
         currency = invoices[0]['currency'] if invoices else 'INR'  # Default to INR if no invoices
 
-        email_content += f"""
-            <p><strong>Total Outstanding Amount: {total_outstanding_amount} {currency}</strong></p>
-        """
+       
 
         # Check if the email was already sent today
         try:
