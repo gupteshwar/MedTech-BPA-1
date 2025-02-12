@@ -206,7 +206,10 @@ doc_events = {
 		"on_submit":"medtech_bpa.medtech_bpa.custom_scripts.sales_invoice.sales_invoice.on_submit",
 		"before_save":"medtech_bpa.medtech_bpa.custom_scripts.sales_invoice.sales_invoice.before_save"
 
-	}
+	},
+	"Supplier":{
+		"validate":"medtech_bpa.medtech_bpa.custom_scripts.supplier.supplier.validate"
+	},
 }
 
 import frappe
