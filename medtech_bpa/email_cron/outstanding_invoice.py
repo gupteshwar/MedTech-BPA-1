@@ -80,9 +80,17 @@ def send_invoice_summary_email():
                     <td>{invoice['outstanding_amount']} {invoice['currency']}</td>
                 </tr>
             """
+
+        email_content += "</table>"
+
+        # Calculate total outstanding amount
+        total_outstanding_amount = sum(invoice['outstanding_amount'] for invoice in invoices)
+        currency = invoices[0]['currency'] if invoices else 'INR'  # Default to INR if no invoices
+
         email_content += f"""
             <p><strong>Total Outstanding Amount: {total_outstanding_amount} {currency}</strong></p>
         """
+
         # Calculate customer-wise total outstanding amount
         customer_totals = {}
         for invoice in invoices:
@@ -90,39 +98,25 @@ def send_invoice_summary_email():
             if customer not in customer_totals:
                 customer_totals[customer] = 0
             customer_totals[customer] += invoice['outstanding_amount']
-        # Append customer-wise totals to the email content
+
+        # Append customer-wise totals outside the table
         email_content += """
             <h3>Customer-wise Outstanding Totals</h3>
-            <table border='1' style='width:100%; border-collapse: collapse;'>
-            <tr>
-                <th>Customer</th>
-                <th>Total Outstanding Amount</th>
-            </tr>
+            <ul>
         """
         for customer, total in customer_totals.items():
-            email_content += f"""
-            <tr>
-                <td>{customer}</td>
-                <td>{total} {currency}</td>
-            </tr>
-            """
+            email_content += f"<li><strong>{customer}:</strong> {total} {currency}</li>"
+
         email_content += """
-            </table>
+            </ul>
         """
+
         email_content += """
-            </table>
-            <br>
             <p>We kindly request you to review and take the necessary action to clear these invoices at the earliest.</p>
             <p>Thank you for your prompt attention to this matter.</p>
             <p>Best regards,</p>
             <p>Medtech Life Pvt. Ltd.</p>
         """
-
-        # Calculate total outstanding amount
-        total_outstanding_amount = sum(invoice['outstanding_amount'] for invoice in invoices)
-        currency = invoices[0]['currency'] if invoices else 'INR'  # Default to INR if no invoices
-
-       
 
         # Check if the email was already sent today
         try:
