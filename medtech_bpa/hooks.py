@@ -157,6 +157,7 @@ doctype_js = {
 	"Sales Invoice":"medtech_bpa/custom_scripts/sales_invoice/sales_invoice.js",
 	"Payment Entry":"medtech_bpa/custom_scripts/payment_entry/payment_entry.js",
 	"Delivery Note":"medtech_bpa/custom_scripts/delivery_note/delivery_note.js",
+	"Supplier":"medtech_bpa/custom_scripts/supplier/supplier.js",
 }
 
 
