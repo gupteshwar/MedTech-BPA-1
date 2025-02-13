@@ -1,35 +1,27 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2025-01-30 14:40:51.986936",
+ "creation": "2025-02-12 15:13:03.533839",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "customer_group",
-  "recipient"
+  "allow_manual_entry"
  ],
  "fields": [
   {
-   "fieldname": "recipient",
-   "fieldtype": "Table",
-   "label": "Recipient ",
-   "options": "Outstanding Invoice Recipients",
-   "reqd": 1
-  },
-  {
-   "fieldname": "customer_group",
-   "fieldtype": "Link",
-   "label": "Customer Group",
-   "options": "Customer Group"
+   "default": "0",
+   "fieldname": "allow_manual_entry",
+   "fieldtype": "Check",
+   "label": "Allow Manual Entry"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-02-12 13:39:00.266429",
+ "modified": "2025-02-12 15:13:28.800308",
  "modified_by": "Administrator",
  "module": "MedTech-BPA",
- "name": "Outstanding Invoice Email Settings",
+ "name": "Supplier Autoname Settings",
  "owner": "Administrator",
  "permissions": [
   {
