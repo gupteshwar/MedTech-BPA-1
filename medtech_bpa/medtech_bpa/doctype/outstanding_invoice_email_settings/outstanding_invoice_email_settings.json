@@ -6,6 +6,7 @@
  "engine": "InnoDB",
  "field_order": [
   "customer_group",
+  "order_type",
   "recipient"
  ],
  "fields": [
@@ -21,12 +22,17 @@
    "fieldtype": "Link",
    "label": "Customer Group",
    "options": "Customer Group"
+  },
+  {
+   "fieldname": "order_type",
+   "fieldtype": "Data",
+   "label": "Order Type"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-02-12 13:39:00.266429",
+ "modified": "2025-02-14 17:39:39.031623",
  "modified_by": "Administrator",
  "module": "MedTech-BPA",
  "name": "Outstanding Invoice Email Settings",
