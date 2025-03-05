@@ -38,6 +38,7 @@ def getAllpurchaseReceipt(timestamp="",limit=50,offset=0):
                 "supplier_delivery_note",
                 "modified as updated_at",
                 "docstatus",
+                "supplier_bill_date as supplier_invoice_date"
                 ],
             
             filters={
@@ -56,7 +57,7 @@ def getAllpurchaseReceipt(timestamp="",limit=50,offset=0):
         fields=["item_code","supplier_part_no","item_name","description",
                 "uom","received_qty","qty","rejected_qty","serial_no",
                 "serial_and_batch_bundle","rejected_serial_and_batch_bundle",
-                "batch_no"
+                "batch_no","purchase_order"
                 ]
         )
         #!update purchase table item description
@@ -151,6 +152,7 @@ def getAllpurchaseReturn(timestamp="",limit=50,offset=0):
                 "supplier_delivery_note",
                 "modified as updated_at",
                 "docstatus",
+                "supplier_bill_date as supplier_invoice_date"
                 ],
             
             filters={
@@ -171,7 +173,7 @@ def getAllpurchaseReturn(timestamp="",limit=50,offset=0):
         fields=["item_code","supplier_part_no","item_name","description",
                 "uom","received_qty","qty","rejected_qty","serial_no",
                 "serial_and_batch_bundle","rejected_serial_and_batch_bundle",
-                "batch_no"
+                "batch_no","purchase_order"
                 ]
         )
         #!==============================================================================
