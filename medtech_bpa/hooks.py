@@ -211,6 +211,12 @@ doc_events = {
 	"Supplier":{
 		"validate":"medtech_bpa.medtech_bpa.custom_scripts.supplier.supplier.validate"
 	},
+	"Payment Entry":{
+		"validate":"medtech_bpa.medtech_bpa.custom_scripts.payment_entry.payment_entry.validate"
+	},
+	"Journal Entry":{
+		"validate":"medtech_bpa.medtech_bpa.custom_scripts.journal_entry.journal_entry.validate"
+	},
 }
 
 import frappe
