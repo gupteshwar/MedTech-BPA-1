@@ -7,22 +7,20 @@ from frappe import _
 
 
 def validate(doc, method):
-    if doc.docstatus == 0:
-        for item in doc.items:  
-            if item.purchase_order:
-                existing_draft = frappe.db.sql("""
-                    SELECT pr.name 
-                    FROM `tabPurchase Receipt` pr
-                    JOIN `tabPurchase Receipt Item` pri ON pri.parent = pr.name
-                    WHERE pri.purchase_order = %s
-                        AND pr.docstatus = 0
-                        AND pr.name != %s
-                    LIMIT 1
-                """, (item.purchase_order, doc.name), as_dict=True)
+    if doc.docstatus == 0 and doc.items[0].purchase_order:
+            existing_draft = frappe.db.sql("""
+                SELECT pr.name 
+                FROM `tabPurchase Receipt` pr
+                JOIN `tabPurchase Receipt Item` pri ON pri.parent = pr.name
+                WHERE pri.purchase_order = %s
+                    AND pr.docstatus = 0
+                    AND pr.name != %s
+                LIMIT 1
+            """, (doc.items[0].purchase_order, doc.name), as_dict=True)
 
-                if existing_draft:
-                    frappe.msgprint(_("A Draft Purchase Receipt already exists for Purchase Order {0}")
-                                 .format(item.purchase_order))
+            if existing_draft:
+                frappe.msgprint(_("A Draft Purchase Receipt already exists for Purchase Order {0}")
+                                .format(doc.items[0].purchase_order))
 
     if doc.is_return:
         setting_doc = frappe.get_single('MedTech Settings')
