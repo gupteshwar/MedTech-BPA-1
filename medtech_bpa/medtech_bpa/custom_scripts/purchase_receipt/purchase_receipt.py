@@ -125,20 +125,8 @@ def before_save(doc,method):
     # if doc.is_return != 1:
     #     map_pr_qty_to_po_qty(doc)
 
-    if doc.docstatus == 0 and doc.items[0].purchase_order:
-        existing_draft = frappe.db.sql("""
-            SELECT pr.name 
-            FROM `tabPurchase Receipt` pr
-            JOIN `tabPurchase Receipt Item` pri ON pri.parent = pr.name
-            WHERE pri.purchase_order = %s
-                AND pr.docstatus = 0
-                AND pr.name != %s
-            LIMIT 1
-        """, (doc.items[0].purchase_order, doc.name), as_dict=True)
-
-        if existing_draft:
-            frappe.msgprint(_("A Draft Purchase Receipt already exists for Purchase Order {0}")
-                            .format(doc.items[0].purchase_order))
+    # alert for existing PR in Draft
+    existing_pr_alert(doc)
 
 # @frappe.whitelist()
 # def map_pr_qty_to_po_qty(doc):
@@ -420,4 +408,18 @@ def po_restriction(doc):
                 if not purchase_order:
                    frappe.throw("Purchase Order is mandatory for this branch")
 
-               
+# alert for existing PR In Draft
+def existing_pr_alert(doc):
+    if doc.docstatus == 0 and doc.items[0].purchase_order:
+        existing_draft = frappe.db.sql("""
+            SELECT pr.name 
+            FROM `tabPurchase Receipt` pr
+            JOIN `tabPurchase Receipt Item` pri ON pri.parent = pr.name
+            WHERE pri.purchase_order = %s
+                AND pr.docstatus = 0
+                AND pr.name != %s
+            LIMIT 1
+        """, (doc.items[0].purchase_order, doc.name), as_dict=True)
+
+        if existing_draft:
+            frappe.msgprint(_(f"A Draft Purchase Receipt already exists for Purchase Order {doc.items[0].purchase_order}"))
