@@ -7,21 +7,6 @@ from frappe import _
 
 
 def validate(doc, method):
-    if doc.docstatus == 0 and doc.items[0].purchase_order:
-            existing_draft = frappe.db.sql("""
-                SELECT pr.name 
-                FROM `tabPurchase Receipt` pr
-                JOIN `tabPurchase Receipt Item` pri ON pri.parent = pr.name
-                WHERE pri.purchase_order = %s
-                    AND pr.docstatus = 0
-                    AND pr.name != %s
-                LIMIT 1
-            """, (doc.items[0].purchase_order, doc.name), as_dict=True)
-
-            if existing_draft:
-                frappe.msgprint(_("A Draft Purchase Receipt already exists for Purchase Order {0}")
-                                .format(doc.items[0].purchase_order))
-
     if doc.is_return:
         setting_doc = frappe.get_single('MedTech Settings')
         if setting_doc.get('rejected_warehouse') == doc.set_warehouse:
@@ -140,6 +125,20 @@ def before_save(doc,method):
     if doc.is_return != 1:
         map_pr_qty_to_po_qty(doc)
 
+    if doc.docstatus == 0 and doc.items[0].purchase_order:
+        existing_draft = frappe.db.sql("""
+            SELECT pr.name 
+            FROM `tabPurchase Receipt` pr
+            JOIN `tabPurchase Receipt Item` pri ON pri.parent = pr.name
+            WHERE pri.purchase_order = %s
+                AND pr.docstatus = 0
+                AND pr.name != %s
+            LIMIT 1
+        """, (doc.items[0].purchase_order, doc.name), as_dict=True)
+
+        if existing_draft:
+            frappe.msgprint(_("A Draft Purchase Receipt already exists for Purchase Order {0}")
+                            .format(doc.items[0].purchase_order))
 
 # @frappe.whitelist()
 # def map_pr_qty_to_po_qty(doc):
