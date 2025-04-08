@@ -122,8 +122,8 @@ def before_save(doc,method):
 
     # if doc.is_return != 1 and doc.get('__islocal') and po_ref == 0:
     # 	map_pr_qty_to_po_qty(doc)
-    if doc.is_return != 1:
-        map_pr_qty_to_po_qty(doc)
+    # if doc.is_return != 1:
+    #     map_pr_qty_to_po_qty(doc)
 
     if doc.docstatus == 0 and doc.items[0].purchase_order:
         existing_draft = frappe.db.sql("""
