@@ -112,6 +112,9 @@ def set_po_item_rate(doc):
                 if item.maintain_fix_rate == 1 and rate != item.rate:
                     frappe.throw('Not allowed to change the rate for <b>Row {0}</b> as <b>Maintain Fix Rate</b> is checked on the purchase order {1}'.format(item.idx, get_link_to_form('Purchase Order', item.purchase_order)))
 
+def after_insert(doc, method):
+    existing_pr_alert(doc)
+
 
 def before_save(doc,method):
     # po_ref = 0
@@ -122,11 +125,10 @@ def before_save(doc,method):
 
     # if doc.is_return != 1 and doc.get('__islocal') and po_ref == 0:
     # 	map_pr_qty_to_po_qty(doc)
-    # if doc.is_return != 1:
-    #     map_pr_qty_to_po_qty(doc)
+    if doc.is_return != 1:
+        map_pr_qty_to_po_qty(doc)
 
     # alert for existing PR in Draft
-    existing_pr_alert(doc)
 
 # @frappe.whitelist()
 # def map_pr_qty_to_po_qty(doc):
