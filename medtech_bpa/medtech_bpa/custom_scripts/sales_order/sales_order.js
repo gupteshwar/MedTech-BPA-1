@@ -17,15 +17,18 @@ frappe.ui.form.on("Sales Order", {
 			})
 		}
         
-        setTimeout(() => {
-            frm.remove_custom_button('Reserve', 'Stock Reservation');
-        }, 10);
+        // setTimeout(() => {
+        //     frm.remove_custom_button('Reserve', 'Stock Reservation');
+        // }, 10);
         
         // Add custom button and override the stock reservation function
-        frm.add_custom_button(__("Reserve"), function () {
-            create_stock_reservation_entries_with_raw_materials(frm);
-        },__("Stock Reseration"));
-         
+        // frm.add_custom_button(__("Reserve"), function () {
+        //     create_stock_reservation_entries_with_raw_materials(frm);
+        // },__("Stock Reseration"));
+        
+        frm.add_custom_button(__('Material Request For RM'), function () {
+            create_Material_request_raw_materials(frm);
+        })
     },
 	send_email: function(frm) {
 		frappe.call({
@@ -826,5 +829,18 @@ function create_stock_reservation_entries_with_raw_materials(frm) {
     dialog.show();
 }
 
+function create_Material_request_raw_materials(frm) {
+    frappe.call({
+        method:"medtech_bpa.medtech_bpa.custom_scripts.sales_order.sales_order.create_material_request_from_bom",
+        args:{
+            sales_order:frm.doc.name
+        },
+        callback: function (r) {
+            if (!r.exc && r.message) {
+                frappe.set_route("Form", "Material Request", r.message);
 
+            }
+        }
+    })
+}
 
