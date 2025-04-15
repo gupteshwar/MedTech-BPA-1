@@ -3,6 +3,8 @@ import frappe
 from frappe import _
 from frappe.utils import getdate, flt
 from frappe.utils.background_jobs import enqueue
+from frappe.utils import nowdate, add_days
+
 
 
 @frappe.whitelist()
@@ -177,3 +179,56 @@ def get_bom_materials_for_sales_order_item(sales_order):
    
     return result
 
+@frappe.whitelist()
+def create_material_request_from_bom(sales_order):
+    sales_order_doc = frappe.get_doc("Sales Order", sales_order)
+
+    item_raw_materials = {}
+
+    for item in sales_order_doc.items:
+        # Get default BOM for the item
+        bom = frappe.db.get_value("BOM", {"item": item.item_code, "is_default": 1, "is_active": 1}, "name")
+        if not bom:
+            frappe.msgprint(f"No default BOM found for item {item.item_code}")
+            continue
+
+        bom_doc = frappe.get_doc("BOM", bom)
+
+        for bom_item in bom_doc.items:
+            key = (bom_item.item_code, bom_item.uom, bom_item.stock_uom)
+            if key not in item_raw_materials:
+                item_raw_materials[key] = {
+                    "item_code": bom_item.item_code,
+                    "qty": bom_item.qty,
+                    "uom": bom_item.uom,
+                    "stock_uom": bom_item.stock_uom,
+                    "warehouse": sales_order_doc.items[0].warehouse,  # Assuming same warehouse
+                }
+            else:
+                item_raw_materials[key]["qty"] += bom_item.qty
+
+    if not item_raw_materials:
+        frappe.throw("No BOMs found for any items in this Sales Order.")
+    
+    delivery_date = sales_order_doc.delivery_date or add_days(nowdate(), 7)
+
+    # Create Material Request
+    mr = frappe.new_doc("Material Request")
+    mr.material_request_type = "Material Transfer"
+    mr.company = sales_order_doc.company
+    mr.sales_order = sales_order_doc.name
+    mr.required_by = delivery_date
+
+    for item in item_raw_materials.values():
+        mr.append("items", {
+            "item_code": item["item_code"],
+            "qty": item["qty"],
+            "uom": item["uom"],
+            "stock_uom": item["stock_uom"],
+            "warehouse": item["warehouse"],
+            "schedule_date": delivery_date,
+            "sales_order": sales_order_doc.name
+        })
+
+    mr.insert(ignore_permissions=True)
+    return mr.name
