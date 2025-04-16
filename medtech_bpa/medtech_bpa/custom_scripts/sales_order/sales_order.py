@@ -157,28 +157,29 @@ def before_save(doc,method):
         if row.fully_discount == 1 and row.fully_discount_rate == 0:
             frappe.throw(frappe._("Fully discount rate field is mandatory at row {0}.").format(row.idx))
 
-@frappe.whitelist()
-def get_bom_materials_for_sales_order_item(sales_order):
-    so = frappe.get_doc("Sales Order", sales_order)
-    result = []
+# @frappe.whitelist()
+# def get_bom_materials_for_sales_order_item(sales_order):
+#     so = frappe.get_doc("Sales Order", sales_order)
+#     result = []
 
-    for item in so.items:
-        sales_order_item = item.name
+#     for item in so.items:
+#         sales_order_item = item.name
         
-        bom = frappe.get_doc("BOM", item.bom_no)
-        for bom_item in bom.items:
-            result.append({
+#         bom = frappe.get_doc("BOM", item.bom_no)
+#         for bom_item in bom.items:
+#             result.append({
               
-                "item_code": bom_item.item_code,
-                "qty": bom_item.qty * item.qty,
-                "uom": bom_item.uom,
-                "rate":bom_item.rate,
-                "amount":bom_item.amount,
-                "sales_order_item":sales_order_item
-            })
+#                 "item_code": bom_item.item_code,
+#                 "qty": bom_item.qty * item.qty,
+#                 "uom": bom_item.uom,
+#                 "rate":bom_item.rate,
+#                 "amount":bom_item.amount,
+#                 "sales_order_item":sales_order_item
+#             })
    
-    return result
+#     return result
 
+# API to create MR for RM 
 @frappe.whitelist()
 def create_material_request_from_bom(sales_order):
     sales_order_doc = frappe.get_doc("Sales Order", sales_order)
@@ -210,14 +211,19 @@ def create_material_request_from_bom(sales_order):
     if not item_raw_materials:
         frappe.throw("No BOMs found for any items in this Sales Order.")
     
-    delivery_date = sales_order_doc.delivery_date or add_days(nowdate(), 7)
-
     # Create Material Request
+    existing_entry = frappe.db.get_value("Material Request Item", {
+            "sales_order": sales_order_doc.name
+    },["parent"])
+    if existing_entry:
+        frappe.msgprint(f"Material Request For <b> {existing_entry} </b>already exists")
+        # return
     mr = frappe.new_doc("Material Request")
     mr.material_request_type = "Material Transfer"
     mr.company = sales_order_doc.company
     mr.sales_order = sales_order_doc.name
-    mr.required_by = delivery_date
+    mr.required_by = frappe.utils.today()
+    mr.custom_created_from_material_request_for_rm_button = 1
 
     for item in item_raw_materials.values():
         mr.append("items", {
@@ -226,7 +232,7 @@ def create_material_request_from_bom(sales_order):
             "uom": item["uom"],
             "stock_uom": item["stock_uom"],
             "warehouse": item["warehouse"],
-            "schedule_date": delivery_date,
+            "schedule_date": frappe.utils.today(),
             "sales_order": sales_order_doc.name
         })
 
