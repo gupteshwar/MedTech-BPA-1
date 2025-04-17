@@ -1,5 +1,5 @@
 import frappe
-# method to create SE only if MR is created from Custom Button Material For RM
+# method to create SE only if Material Request is created from Custom Button Material For RM
 def on_submit(doc,method):
         try:
             # Check for duplicate Stock Entry
@@ -38,3 +38,4 @@ def on_submit(doc,method):
         except Exception as e:
             frappe.log_error(frappe.get_traceback(), "Stock Entry creation failed")
             frappe.throw(f"Failed to create Stock Entry")
+        
