@@ -33,7 +33,8 @@ def on_submit(doc,method):
                     })
 
                 stock_entry.insert(ignore_permissions=True)
-                frappe.msgprint(f"Stock Entry <b><a href='/app/stock-entry/{stock_entry.name}'>{stock_entry.name}</a></b> has been created")
+                stock_entry.submit()
+                frappe.msgprint(f"Stock Entry <b><a href='/app/stock-entry/{stock_entry.name}'>{stock_entry.name}</a></b> has been created and submitted")
 
         except Exception as e:
             frappe.log_error(frappe.get_traceback(), "Stock Entry creation failed")
