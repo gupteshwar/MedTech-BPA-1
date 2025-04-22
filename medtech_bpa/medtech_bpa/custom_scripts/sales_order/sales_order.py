@@ -183,7 +183,7 @@ def before_save(doc,method):
 @frappe.whitelist()
 def create_material_request_from_bom(sales_order):
     sales_order_doc = frappe.get_doc("Sales Order", sales_order)
-
+    
     item_raw_materials = {}
 
     for item in sales_order_doc.items:
@@ -200,7 +200,7 @@ def create_material_request_from_bom(sales_order):
             if key not in item_raw_materials:
                 item_raw_materials[key] = {
                     "item_code": bom_item.item_code,
-                    "qty": bom_item.qty,
+                    "qty": bom_item.qty * item.qty,
                     "uom": bom_item.uom,
                     "stock_uom": bom_item.stock_uom,
                     "warehouse": sales_order_doc.items[0].warehouse,  # Assuming same warehouse
@@ -216,7 +216,7 @@ def create_material_request_from_bom(sales_order):
             "sales_order": sales_order_doc.name
     },["parent"])
     if existing_entry:
-        frappe.msgprint(f"Material Request For <b> {existing_entry} </b>already exists")
+        frappe.throw(f"Material Request For <b> {existing_entry} </b>already exists")
         # return
     mr = frappe.new_doc("Material Request")
     mr.material_request_type = "Material Transfer"
@@ -224,6 +224,7 @@ def create_material_request_from_bom(sales_order):
     mr.sales_order = sales_order_doc.name
     mr.required_by = frappe.utils.today()
     mr.custom_created_from_material_request_for_rm_button = 1
+    mr.set_warehouse = "Vapi Reserved stock Godown - MLPL",
 
     for item in item_raw_materials.values():
         mr.append("items", {
@@ -231,7 +232,8 @@ def create_material_request_from_bom(sales_order):
             "qty": item["qty"],
             "uom": item["uom"],
             "stock_uom": item["stock_uom"],
-            "warehouse": item["warehouse"],
+            # "warehouse": item["warehouse"],
+            "warehouse" : "Vapi Reserved stock Godown - MLPL",
             "schedule_date": frappe.utils.today(),
             "sales_order": sales_order_doc.name
         })

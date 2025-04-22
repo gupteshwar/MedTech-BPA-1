@@ -25,10 +25,11 @@ frappe.ui.form.on("Sales Order", {
         // frm.add_custom_button(__("Reserve"), function () {
         //     create_stock_reservation_entries_with_raw_materials(frm);
         // },__("Stock Reseration"));
-        
-        frm.add_custom_button(__('Material Request For RM'), function () {
-            create_Material_request_raw_materials(frm);
-        })
+        if(frm.doc.docstatus == 1){
+            frm.add_custom_button(__('Material Request For RM'), function () {
+                create_Material_request_raw_materials(frm);
+            })
+        }
     },
 	send_email: function(frm) {
 		frappe.call({
