@@ -27,7 +27,7 @@ def execute(filters=None):
 def get_columns():
     return [
         {"label": _("ID"), "fieldname": "bom", "fieldtype": "Link", "options": "BOM", "width": 200},
-        {"label": _("Status"), "fieldname": "docstatus", "fieldtype": "Int", "width": 80},
+        {"label": _("Status"), "fieldname": "status", "fieldtype": "Data", "width": 80},
         {"label": _("Item"), "fieldname": "item", "fieldtype": "Link", "options": "Item", "width": 150},
         {"label": _("Is Default"), "fieldname": "is_default", "fieldtype": "Check", "width": 100},
         {"label": _("Currency"), "fieldname": "currency", "fieldtype": "Link", "options": "Currency", "width": 80},
@@ -57,7 +57,8 @@ def get_data(filters):
     data = frappe.db.sql("""
         SELECT 
             bom.name as bom,
-            bom.docstatus,
+            bom.is_active,
+            bom.is_default,
             bom.item as item,
             bom.is_default,
             bom.currency,
@@ -75,5 +76,13 @@ def get_data(filters):
         ORDER BY
             bom.name
     """.format(conditions=conditions), filters, as_dict=1)
-
+    for row in data:
+        # frappe.msgprint(f"is_active: {row.get('is_active')}, is_default: {row.get('is_default')}")
+        if row.get("is_active") == 1 and row.get("is_default") == 1:
+            row["status"] = "Default"
+        elif row.get("is_active") == 1 and row.get("is_default") == 0:
+            row["status"] = "Active"
+        else:
+            row["status"] = "Not Active"
+    print(f"""/n/n/n/n/n/n/n/n/n/n/n/n/ndata={data[0]}/n/n/n/n/n/n/n/n/n/n/n/n/n/n""")
     return data
