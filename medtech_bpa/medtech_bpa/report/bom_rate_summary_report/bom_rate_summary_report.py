@@ -15,8 +15,7 @@ def execute(filters=None):
     if "Hide Item Price" in user_roles and "Administrator" not in user_roles:
         # Remove Rate and Amount columns
         columns = [col for col in columns if col['fieldname'] not in ['rate', 'amount']]
-
-        # Also remove Rate and Amount fields from data
+        # Also remove rate and amount fields from data
         for row in data:
             row.pop('rate', None)
             row.pop('amount', None)
