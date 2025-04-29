@@ -164,9 +164,10 @@ doctype_js = {
 doc_events = {
 	"Purchase Receipt":{
 		"validate":"medtech_bpa.medtech_bpa.custom_scripts.purchase_receipt.purchase_receipt.validate",
-		#"before_save":"medtech_bpa.medtech_bpa.custom_scripts.purchase_receipt.purchase_receipt.before_save",
+		# "before_save":"medtech_bpa.medtech_bpa.custom_scripts.purchase_receipt.purchase_receipt.before_save",
 		"before_submit":"medtech_bpa.medtech_bpa.custom_scripts.purchase_receipt.purchase_receipt.before_submit",
-		"on_submit": "medtech_bpa.medtech_bpa.custom_scripts.purchase_receipt.purchase_receipt.on_submit"	
+		"on_submit": "medtech_bpa.medtech_bpa.custom_scripts.purchase_receipt.purchase_receipt.on_submit",	
+		"after_insert":"medtech_bpa.medtech_bpa.custom_scripts.purchase_receipt.purchase_receipt.after_insert"
 	},
 	"Quality Inspection":{
 		"validate":"medtech_bpa.medtech_bpa.custom_scripts.quality_inspection.quality_inspection.validate",
@@ -188,6 +189,9 @@ doc_events = {
 	},
 	"BOM":{
 	"autoname":"medtech_bpa.medtech_bpa.custom_scripts.bom.bom.autoname"
+	},
+	"Material Request":{
+		"on_submit":"medtech_bpa.medtech_bpa.custom_scripts.material_request.material_request.on_submit"
 	},
 
 	

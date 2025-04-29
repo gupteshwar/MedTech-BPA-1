@@ -16,6 +16,32 @@ frappe.ui.form.on("Purchase Receipt", {
 				});
 			}
 		}
+		// fetching and setting billed_qty and physically verified qty based on purchase order item qty
+		
+		if (frm.is_new() && frm.doc.items && frm.doc.items.length > 0) {
+			let po_name = frm.doc.items[0].purchase_order;
+			if (po_name){
+            	frappe.call({
+					method: "medtech_bpa.medtech_bpa.custom_scripts.purchase_order.purchase_order.get_po_items_qty",
+					args: {
+						po_name: po_name
+					},
+					callback: function (r) {
+						if (r.message) {
+							var qty_mapping = r.message.qty_mapping;
+							frm.doc.items.forEach(function(row) {
+                                if (qty_mapping[row.item_code] !== undefined) {
+                                    frappe.model.set_value(row.doctype, row.name, "billed_qty", qty_mapping[row.item_code]);
+                                    frappe.model.set_value(row.doctype, row.name, "physically_verified_quantity", qty_mapping[row.item_code]);
+                                }
+                            });
+						}
+                    	}
+                    });
+                }
+		}
+    	
+		
 	},
 	refresh: function(frm){
 		if(frm.doc.is_return == 1){
