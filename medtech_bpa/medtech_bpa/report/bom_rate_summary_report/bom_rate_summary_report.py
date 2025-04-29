@@ -77,12 +77,10 @@ def get_data(filters):
             bom.name
     """.format(conditions=conditions), filters, as_dict=1)
     for row in data:
-        # frappe.msgprint(f"is_active: {row.get('is_active')}, is_default: {row.get('is_default')}")
         if row.get("is_active") == 1 and row.get("is_default") == 1:
             row["status"] = "Default"
         elif row.get("is_active") == 1 and row.get("is_default") == 0:
             row["status"] = "Active"
         else:
             row["status"] = "Not Active"
-    print(f"""/n/n/n/n/n/n/n/n/n/n/n/n/ndata={data[0]}/n/n/n/n/n/n/n/n/n/n/n/n/n/n""")
     return data
