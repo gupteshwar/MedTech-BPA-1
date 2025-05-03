@@ -52,7 +52,7 @@ def getAllDeliveryNote(delivery_note_id="",timestamp="",limit=50,offset=0):
                 "custom_consignee_contact as consignee_contact",
                 "custom_consignee_address_ as consignee_address",
                 "modified as updated_at",
-                "doctstatus",
+                "docstatus",
                 ],
             
             filters={
