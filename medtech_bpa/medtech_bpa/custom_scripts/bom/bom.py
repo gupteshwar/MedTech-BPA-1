@@ -21,5 +21,7 @@ def autoname(self,method):
 				idx = 1
 		else:
 			idx = 1
-
-		self.name = 'BOM-' + self.item + ('-%.3i' % idx) + '-' + self.naming_series_text
+		if self.naming_series_text:
+			self.name = 'BOM-' + self.item + ('-%.3i' % idx) + '-' + self.naming_series_text
+		else:
+			frappe.throw("The <b>'Naming Series Text'</b> field is required" )
