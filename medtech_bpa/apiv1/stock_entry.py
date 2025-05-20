@@ -433,10 +433,14 @@ def getAllStockEntry(timestamp="",limit=50,offset=0,purpose=""):
                 )
  
     else:
+            if purpose == "other":
+                purpose = "Material Transfer"
             stock_entry_list = frappe.get_all("Stock Entry",
                 fields=["name","modified as updated_at","posting_date","stock_entry_type","from_warehouse","to_warehouse","docstatus"],
                 filters={
                         'modified':['>',timestamp],
+                        "stock_entry_type":purpose,
+
 
                     },
                 limit=limit,
@@ -504,3 +508,71 @@ def getAllStockEntry(timestamp="",limit=50,offset=0,purpose=""):
 
 #!----------------------------------------------------------------------------------------
 #!COMMIT
+
+
+@frappe.whitelist(allow_guest=False, methods=["GET"])
+def getAllMaterialRequest(timestamp="", limit=50, offset=0, purpose=""):
+
+    # Validate limit and offset
+    try:
+        limit = int(limit)
+        offset = int(offset)
+    except:
+        return api_response(status=False, data=[], message="Please Enter Proper Limit and Offset", status_code=400)
+    
+    if limit > 200 or limit < 0 or offset < 0:
+        return api_response(status=False, data=[], message="Limit exceeded 200 or invalid offset", status_code=400)
+
+    # Validate timestamp
+    if not timestamp:
+        return api_response(status=False, data=[], message="Please Enter a timestamp", status_code=400)
+    
+    try:
+        timestamp_datetime = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
+    except Exception as e:
+        return api_response(status=False, data=[], message=f"Please Enter a valid timestamp {e}", status_code=400)
+
+    # Purpose Filter
+    filters = {
+        'modified': ['>', timestamp]
+    }
+    if purpose:
+        filters['material_request_type'] = purpose
+
+    # Fetch records with pagination
+    material_requests = frappe.get_all("Material Request",
+        fields=["name", "modified as updated_at", "transaction_date", "material_request_type", "docstatus"],
+        filters=filters,
+        limit=limit,
+        order_by='-modified',
+        start=offset
+    )
+
+    # Fetch total size without pagination
+    total_requests = frappe.get_all("Material Request",
+        fields=["name"],
+        filters=filters
+    )
+
+    for req in material_requests:
+        req_name = req["name"]
+        items = frappe.get_all("Material Request Item", 
+            filters={"parent": req_name},
+            fields=["item_code", "item_name", "uom", "qty", "schedule_date", "warehouse", "description"]
+        )
+
+        for item in items:
+            if item.description:
+                soup = BeautifulSoup(item.description, 'html.parser')
+                item.description = soup.get_text()
+
+        req["items"] = items
+
+    if not material_requests:
+        return api_response(status=True, data=[], message="Empty Content", status_code=204)
+    else:
+        return api_response(status=True, 
+                            data=material_requests,
+                            message="Fetched Material Requests Successfully",
+                            status_code=200,
+                            data_size=len(total_requests))
