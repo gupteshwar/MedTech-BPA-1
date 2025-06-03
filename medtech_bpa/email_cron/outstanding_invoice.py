@@ -44,7 +44,7 @@ def send_invoice_summary_email():
 
     # Build the filters for fetching invoices
     invoice_filters = {
-        "posting_date": target_date,
+        "posting_date":["<=",target_date],
         "docstatus": 1,  # Only include submitted invoices
         "outstanding_amount": (">", 0),  # Only include invoices with outstanding amount > 0
         **customer_filters  # Apply customer filter only if customer_group is specified
