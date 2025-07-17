@@ -457,10 +457,39 @@ frappe.ui.form.on('Delivery Note', {
             } 
         })
         frm.refresh_field("items")
-    }
+    },
     
+    onload: function(frm) {
+        if (!frm.doc.items || frm.doc.items.length === 0) return;
 
-    
+        const sales_orders = frm.doc.items
+            .filter(item => item.against_sales_order)
+            .map(item => item.against_sales_order);
+
+        if (sales_orders.length === 0) return;
+
+        // Use the first available sales order
+        const sales_order = sales_orders[0];
+        frappe.db.get_doc('Sales Order', sales_order).then(so => {
+            // Set fields from Sales Order
+            frm.set_value('custom_consignee_name', so.customer_name);
+            frm.set_value('custom_consignee_address_', so.address_display);
+            
+            // Fetch and set Address details
+            if (so.shipping_address_name) {
+                frappe.db.get_doc('Address', so.shipping_address_name).then(addr => {
+                    frm.set_value('custom_consignee_city', addr.city || '');
+                    frm.set_value('custom_consignee_country', addr.country || '');
+                    frm.set_value('custom_consignee_state', addr.state || addr.state_or_province || '');
+                    frm.set_value('custom_consignee_postal_code', addr.pincode || '');
+                    frm.set_value('custom_consignee_contact', addr.phone || '');
+
+                    frm.refresh_fields();
+                });
+            }
+        });
+    }
+        
 })     
              
 
