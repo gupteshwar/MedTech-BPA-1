@@ -4461,11 +4461,7 @@
    "field_name": "additional_discount_account",
    "idx": 0,
    "is_system_generated": 0,
-<<<<<<< HEAD
-   "modified": "2025-04-29 16:15:17.992525",
-=======
    "modified": "2025-07-21 16:19:19.368040",
->>>>>>> UAT
    "modified_by": "Administrator",
    "module": null,
    "name": "Sales Invoice-additional_discount_account-hidden",
@@ -4491,11 +4487,7 @@
    "field_name": "additional_discount_account",
    "idx": 0,
    "is_system_generated": 0,
-<<<<<<< HEAD
-   "modified": "2025-04-29 16:15:18.016441",
-=======
    "modified": "2025-07-21 16:19:19.384301",
->>>>>>> UAT
    "modified_by": "Administrator",
    "module": null,
    "name": "Sales Invoice-additional_discount_account-mandatory_depends_on",
