@@ -59,6 +59,7 @@ def get_data(conditions, filters):
 			poi.qty, poi.received_qty,
 			(poi.qty - poi.received_qty) AS pending_qty,
 			IFNULL(pii.qty, 0) as billed_qty,
+			poi.base_rate as rate,
 			poi.base_amount as amount,
 			(poi.received_qty * poi.base_rate) as received_qty_amount,
 			(poi.billed_amt * IFNULL(po.conversion_rate, 1)) as billed_amount,
@@ -187,6 +188,14 @@ def get_columns(filters):
 			"fieldtype": "Link",
 			"options": "Item",
 			"width": 100
+		})
+		columns.append({
+			"label": _("Rate"),
+			"fieldname": "rate",
+			"fieldtype": "Currency",
+			"width": 100,
+			"options": "Company:company:default_currency",
+			"convertible": "rate"
 		})
 
 	columns.extend([
