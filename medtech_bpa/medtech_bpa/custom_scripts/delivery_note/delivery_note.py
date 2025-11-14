@@ -22,29 +22,16 @@ def before_save(doc,method):
 #!function for fetching the sales order item wise mrp from sales order
 
 
-# @frappe.whitelist()
-# def get_mrp_against_sales_order(sales_order,
-# 								item_code):
-# 	mrp_data=frappe.db.get_all("Sales Order Item",filters={"parent":sales_order,"item_code":item_code},
-# 							fields=["custom_mrp"])
-# 	if len(mrp_data)!=0:
-# 		custom_erp = mrp_data[0].get("custom_mrp")
-# 	else:
-# 		custom_erp=None
-# 	return custom_erp
-
 @frappe.whitelist()
-def get_mrp_against_sales_order(sales_order, item_code):
-    mrp_value = frappe.db.get_value(
-        "Sales Order Item",
-        {"parent": sales_order, "item_code": item_code},
-        "custom_mrp"
-    )
-    if mrp_value and mrp_value > 0:
-        return mrp_value
-    else:
-        return None
-
+def get_mrp_against_sales_order(sales_order,
+								item_code):
+	mrp_data=frappe.db.get_all("Sales Order Item",filters={"parent":sales_order,"item_code":item_code},
+							fields=["custom_mrp"])
+	if len(mrp_data)!=0:
+		custom_erp = mrp_data[0].get("custom_mrp")
+	else:
+		custom_erp=None
+	return custom_erp
 
 #!============================================
 #!==========================================
