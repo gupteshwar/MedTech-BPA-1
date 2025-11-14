@@ -1,45 +1,63 @@
 frappe.ui.form.on('Delivery Note', {
-    refresh(frm,cdt, cdn) {
-        frm.doc.items.forEach(i=>{
+    // refresh(frm,cdt, cdn) {
+    //     frm.doc.items.forEach(i=>{
 
-            if (i.fully_discount == 1 && i.against_sales_order != null && frm.doc.__islocal){
-                    i.price_list_rate = i.fully_discount_rate;
-                } 
-            //! Setting the MRP
-            //!================================================================
-            if (i.against_sales_order != null){
-               frappe.call({
-                method: 'medtech_bpa.medtech_bpa.custom_scripts.delivery_note.delivery_note.get_mrp_against_sales_order',
-                args:{
-                    'sales_order':i.against_sales_order,
-                    'item_code':i.item_code
-                },
-                callback: function(r) {
-                    if (r.message.length > 0){
-                        i.custom_mrp = r.message[0].custom_mrp
-                        }
-                     }
-                    })
-                 } 
-                //!================================================================
-        
-            
-            
-            }
-            
-        
-        )
+    //         if (i.fully_discount == 1 && i.against_sales_order != null && frm.doc.__islocal){
+    //                 i.price_list_rate = i.fully_discount_rate;
+    //             } 
+    //         //! Setting the MRP
+    //         //!================================================================
+    //         if (i.against_sales_order != null){
+    //            frappe.call({
+    //             method: 'medtech_bpa.medtech_bpa.custom_scripts.delivery_note.delivery_note.get_mrp_against_sales_order',
+    //             args:{
+    //                 'sales_order':i.against_sales_order,
+    //                 'item_code':i.item_code
+    //             },
+    //             callback: function(r) {
+    //                 if (r.message.length > 0){
+    //                     i.custom_mrp = r.message[0].custom_mrp
+    //                     }
+    //                  }
+    //                 })
+    //              } 
+    //             //!================================================================      
+    //         }
 
+    //     )
 
-            
-            
-           
-            
-        
-        frm.refresh_field("items")
-    },
+    //     frm.refresh_field("items")
+    // },
 
     before_save(frm) {
+        frm.doc.items.forEach(i => {
+            // Set price list rate if fully discounted and new document
+            if (
+                i.fully_discount == 1 &&
+                i.against_sales_order != null &&
+                frm.doc.__islocal
+            ) {
+                i.price_list_rate = i.fully_discount_rate;
+            }
+
+            // Setting the MRP based on Sales Order
+            if (i.against_sales_order != null) {
+                frappe.call({
+                    method: 'medtech_bpa.medtech_bpa.custom_scripts.delivery_note.delivery_note.get_mrp_against_sales_order',
+                    args: {
+                        sales_order: i.against_sales_order,
+                        item_code: i.item_code
+                    },
+                    callback: function (r) {
+                        if (r.message) {
+                            i.custom_mrp = r.message;
+                        }
+                    }
+                });
+            }
+        });
+
+
         frm.doc.items.forEach(row=>{
             if (row.discount_percentage !=0 && row.spl_disc !=0 && row.free_qty == 0 && row.additional_spl_disc == 0 && row.fully_discount != 1){
                 console.log("!!! !!!!!!1")
