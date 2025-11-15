@@ -18,16 +18,16 @@ def before_save(doc,method):
 		if row.fully_discount == 1 and row.fully_discount_rate == 0:
 			frappe.throw(frappe._("Fully discount rate field is mandatory at row {0}.").format(row.idx))
 			
-		if i.fully_discount == 1 and i.against_sales_order:
-			i.price_list_rate = i.fully_discount_rate
+		if row.fully_discount == 1 and row.against_sales_order:
+			row.price_list_rate = row.fully_discount_rate
 			
-		if i.against_sales_order:
+		if row.against_sales_order:
 			mrp = frappe.db.get_value(
 				"Sales Order Item",
-				{"parent": i.against_sales_order, "item_code": i.item_code},
+				{"parent": row.against_sales_order, "item_code": row.item_code},
 				"custom_mrp"
 				)
-			i.custom_mrp = mrp
+			row.custom_mrp = mrp
 
 #!==========================================
 #!function for fetching the sales order item wise mrp from sales order
