@@ -17,21 +17,32 @@ def before_save(doc,method):
 	for row in doc.items:
 		if row.fully_discount == 1 and row.fully_discount_rate == 0:
 			frappe.throw(frappe._("Fully discount rate field is mandatory at row {0}.").format(row.idx))
+			
+		if i.fully_discount == 1 and i.against_sales_order:
+			i.price_list_rate = i.fully_discount_rate
+			
+		if i.against_sales_order:
+			mrp = frappe.db.get_value(
+				"Sales Order Item",
+				{"parent": i.against_sales_order, "item_code": i.item_code},
+				"custom_mrp"
+				)
+			i.custom_mrp = mrp
 
 #!==========================================
 #!function for fetching the sales order item wise mrp from sales order
 
 
-@frappe.whitelist()
-def get_mrp_against_sales_order(sales_order,
-								item_code):
-	mrp_data=frappe.db.get_all("Sales Order Item",filters={"parent":sales_order,"item_code":item_code},
-							fields=["custom_mrp"])
-	if len(mrp_data)!=0:
-		custom_erp = mrp_data[0].get("custom_mrp")
-	else:
-		custom_erp=None
-	return custom_erp
+# @frappe.whitelist()
+# def get_mrp_against_sales_order(sales_order,
+# 								item_code):
+# 	mrp_data=frappe.db.get_all("Sales Order Item",filters={"parent":sales_order,"item_code":item_code},
+# 							fields=["custom_mrp"])
+# 	if len(mrp_data)!=0:
+# 		custom_erp = mrp_data[0].get("custom_mrp")
+# 	else:
+# 		custom_erp=None
+# 	return custom_erp
 
 #!============================================
 #!==========================================
