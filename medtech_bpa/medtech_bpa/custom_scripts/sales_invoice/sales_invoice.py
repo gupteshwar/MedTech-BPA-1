@@ -13,6 +13,14 @@ def validate(doc, method):
 		so_doc.db_update()
 		frappe.db.commit()
 
+def on_update_after_submit(doc, method):
+    update_dn_modified(doc,method)
+
+
+def update_dn_modified(doc,method):
+	for row in doc.items:
+		if row.delivery_note:
+			frappe.db.set_value("Delivery Note",row.delivery_note,"modified",frappe.utils.now())
 
 def on_submit(doc, method):
 	# so_name = [row.sales_order for row in doc.items]
