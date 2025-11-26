@@ -209,7 +209,8 @@ doc_events = {
 	"Sales Invoice":{
 		"validate":"medtech_bpa.medtech_bpa.custom_scripts.sales_invoice.sales_invoice.validate",
 		"on_submit":"medtech_bpa.medtech_bpa.custom_scripts.sales_invoice.sales_invoice.on_submit",
-		"before_save":"medtech_bpa.medtech_bpa.custom_scripts.sales_invoice.sales_invoice.before_save"
+		"before_save":"medtech_bpa.medtech_bpa.custom_scripts.sales_invoice.sales_invoice.before_save",
+		"on_update_after_submit":"medtech_bpa.medtech_bpa.custom_scripts.sales_invoice.sales_invoice.on_update_after_submit"
 
 	},
 	"Supplier":{
