@@ -73,7 +73,7 @@ def get_data(conditions, filters):
 			ON pii.po_detail = poi.name
 		WHERE
 			poi.parent = po.name
-			and po.status not in ('Stopped', 'Closed')
+			and po.status not in ('Stopped')
 			and po.docstatus = 1
 			{0}
 		GROUP BY poi.name
