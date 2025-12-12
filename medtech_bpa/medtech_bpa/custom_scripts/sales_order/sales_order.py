@@ -179,63 +179,178 @@ def before_save(doc,method):
    
 #     return result
 
-# API to create MR for RM 
+# # API to create MR for RM 
+# @frappe.whitelist()
+# def create_material_request_from_bom(sales_order):
+#     sales_order_doc = frappe.get_doc("Sales Order", sales_order)
+    
+#     item_raw_materials = {}
+
+#     for item in sales_order_doc.items:
+#         # Get default BOM for the item
+#         bom = frappe.db.get_value("BOM", {"item": item.item_code, "is_default": 1, "is_active": 1}, "name")
+#         if not bom:
+#             frappe.msgprint(f"No default BOM found for item {item.item_code}")
+#             continue
+
+#         bom_doc = frappe.get_doc("BOM", bom)
+
+#         for bom_item in bom_doc.items:
+#             key = (bom_item.item_code, bom_item.uom, bom_item.stock_uom)
+#             if key not in item_raw_materials:
+#                 item_raw_materials[key] = {
+#                     "item_code": bom_item.item_code,
+#                     "qty": bom_item.qty * item.qty,
+#                     "uom": bom_item.uom,
+#                     "stock_uom": bom_item.stock_uom,
+#                     "warehouse": sales_order_doc.items[0].warehouse,  # Assuming same warehouse
+#                 }
+#             else:
+#                 item_raw_materials[key]["qty"] += bom_item.qty
+
+#     if not item_raw_materials:
+#         frappe.throw("No BOMs found for any items in this Sales Order.")
+    
+#     # Create Material Request
+#     existing_entry = frappe.db.get_value("Material Request Item", {
+#             "sales_order": sales_order_doc.name
+#     },["parent"])
+#     if existing_entry:
+#         frappe.throw(f"Material Request For <b> {existing_entry} </b>already exists")
+#         # return
+#     mr = frappe.new_doc("Material Request")
+#     mr.material_request_type = "Material Transfer"
+#     mr.company = sales_order_doc.company
+#     mr.sales_order = sales_order_doc.name
+#     mr.required_by = frappe.utils.today()
+#     mr.custom_created_from_material_request_for_rm_button = 1
+#     mr.set_warehouse = "Vapi Reserved stock Godown - MLPL",
+
+#     for item in item_raw_materials.values():
+#         mr.append("items", {
+#             "item_code": item["item_code"],
+#             "qty": item["qty"],
+#             "uom": item["uom"],
+#             "stock_uom": item["stock_uom"],
+#             # "warehouse": item["warehouse"],
+#             "warehouse" : "Vapi Reserved stock Godown - MLPL",
+#             "schedule_date": frappe.utils.today(),
+#             "sales_order": sales_order_doc.name
+#         })
+
+#     mr.insert(ignore_permissions=True)
+#     return mr.name
+
 @frappe.whitelist()
 def create_material_request_from_bom(sales_order):
     sales_order_doc = frappe.get_doc("Sales Order", sales_order)
-    
-    item_raw_materials = {}
 
-    for item in sales_order_doc.items:
-        # Get default BOM for the item
-        bom = frappe.db.get_value("BOM", {"item": item.item_code, "is_default": 1, "is_active": 1}, "name")
-        if not bom:
-            frappe.msgprint(f"No default BOM found for item {item.item_code}")
+   # Warehouses to check IN ORDER
+    source_warehouses = [
+        "Vapi GST - RAW MATERIAL - MLPL",
+        "Vapi-Concessional Godown - MLPL",
+    ]
+
+    mr_rows = []  # split rows
+
+    # PROCESS ALL ITEMS FROM BOM
+    for so_item in sales_order_doc.items:
+
+        bom_name = frappe.db.get_value(
+            "BOM",
+            {"item": so_item.item_code, "is_default": 1, "is_active": 1},
+            "name",
+        )
+
+        if not bom_name:
+            print(f"[WARN] No default BOM for {so_item.item_code}")
             continue
 
-        bom_doc = frappe.get_doc("BOM", bom)
+        bom_doc = frappe.get_doc("BOM", bom_name)
 
-        for bom_item in bom_doc.items:
-            key = (bom_item.item_code, bom_item.uom, bom_item.stock_uom)
-            if key not in item_raw_materials:
-                item_raw_materials[key] = {
-                    "item_code": bom_item.item_code,
-                    "qty": bom_item.qty * item.qty,
-                    "uom": bom_item.uom,
-                    "stock_uom": bom_item.stock_uom,
-                    "warehouse": sales_order_doc.items[0].warehouse,  # Assuming same warehouse
-                }
-            else:
-                item_raw_materials[key]["qty"] += bom_item.qty
+        # Expand RM items
+        for rm in bom_doc.items:
 
-    if not item_raw_materials:
-        frappe.throw("No BOMs found for any items in this Sales Order.")
-    
-    # Create Material Request
-    existing_entry = frappe.db.get_value("Material Request Item", {
-            "sales_order": sales_order_doc.name
-    },["parent"])
-    if existing_entry:
-        frappe.throw(f"Material Request For <b> {existing_entry} </b>already exists")
-        # return
+            required_qty = rm.qty * so_item.qty
+            remaining = required_qty
+
+
+            # SPLIT LOGIC → Try warehouses one by one
+
+            for wh in source_warehouses:
+
+                stock = frappe.db.get_value(
+                    "Bin",
+                    {"item_code": rm.item_code, "warehouse": wh},
+                    "actual_qty"
+                ) or 0
+
+                if stock <= 0:
+                    continue
+
+                take = min(stock, remaining)
+
+                mr_rows.append({
+                    "item_code": rm.item_code,
+                    "qty": take,
+                    "uom": rm.uom,
+                    "stock_uom": rm.stock_uom,
+                    "from_warehouse": wh,
+                })
+
+                remaining -= take
+
+                # If requirement is completed → STOP
+                if remaining <= 0:
+                    break
+
+            # After looping all warehouses → check shortage
+            if remaining > 0:
+                print(f"[SHORTAGE] {rm.item_code} shortage: {remaining}")
+                mr_rows.append({
+                    "item_code": rm.item_code,
+                    "qty": remaining,
+                    "uom": rm.uom,
+                    "stock_uom": rm.stock_uom,
+                    "from_warehouse": None,   # shortage row
+                })
+
+    if not mr_rows:
+        frappe.throw("No raw materials found.")
+
+    # CHECK EXISTING MR
+    existing = frappe.db.get_value(
+        "Material Request Item",
+        {"sales_order": sales_order_doc.name},
+        "parent",
+    )
+
+    if existing:
+        frappe.throw(f"Material Request {existing} already exists.")
+
+    # CREATE MATERIAL REQUEST
     mr = frappe.new_doc("Material Request")
     mr.material_request_type = "Material Transfer"
     mr.company = sales_order_doc.company
     mr.sales_order = sales_order_doc.name
     mr.required_by = frappe.utils.today()
-    mr.custom_created_from_material_request_for_rm_button = 1
-    mr.set_warehouse = "Vapi Reserved stock Godown - MLPL",
 
-    for item in item_raw_materials.values():
+    target_warehouse = "Vapi Reserved stock Godown - MLPL"
+
+    for row in mr_rows:
+        print(
+            f"Adding Row | {row['item_code']} | Qty: {row['qty']} | "
+            f"From: {row['from_warehouse']}"
+        )
         mr.append("items", {
-            "item_code": item["item_code"],
-            "qty": item["qty"],
-            "uom": item["uom"],
-            "stock_uom": item["stock_uom"],
-            # "warehouse": item["warehouse"],
-            "warehouse" : "Vapi Reserved stock Godown - MLPL",
+            "item_code": row["item_code"],
+            "qty": row["qty"],
+            "uom": row["uom"],
+            "stock_uom": row["stock_uom"],
+            "from_warehouse": row["from_warehouse"],
+            "warehouse": target_warehouse,
             "schedule_date": frappe.utils.today(),
-            "sales_order": sales_order_doc.name
+            "sales_order": sales_order_doc.name,
         })
 
     mr.insert(ignore_permissions=True)
