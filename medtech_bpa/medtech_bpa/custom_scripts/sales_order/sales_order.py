@@ -182,131 +182,92 @@ def before_save(doc,method):
 # API to create MR for RM 
 @frappe.whitelist()
 def create_material_request_from_bom(sales_order):
-
     sales_order_doc = frappe.get_doc("Sales Order", sales_order)
-
-    # Warehouses to check IN ORDER
     source_warehouses = [
         "Vapi GST - RAW MATERIAL - MLPL",
         "Vapi-Concessional Godown - MLPL",
     ]
+    target_warehouse = "Vapi Reserved stock Godown - MLPL"
+    mr_rows = []
 
-    mr_rows = []  # only rows that have full stock
-
+    # Create pending records if not exist
     for so_item in sales_order_doc.items:
-
-        bom_name = frappe.db.get_value(
-            "BOM",
-            {"item": so_item.item_code, "is_default": 1, "is_active": 1},
-            "name",
-        )
-
-        if not bom_name:
-            print(f"[WARN] No default BOM for {so_item.item_code}")
-            continue
-
+        bom_name = frappe.db.get_value("BOM", {"item": so_item.item_code, "is_default": 1, "is_active": 1}, "name")
+        if not bom_name: continue
         bom_doc = frappe.get_doc("BOM", bom_name)
-
-        # BOM RM items
+        
         for rm in bom_doc.items:
-
             required_qty = rm.qty * so_item.qty
 
-            # Fetch item name
-            item_name = frappe.db.get_value("Item", rm.item_code, "item_name") or rm.item_code
-
-            # Create clickable item link
-            item_link = f'<a href="/app/item/{rm.item_code}" target="_blank">{item_name}</a>'
-
-            # TOTAL AVAILABLE in both warehouses
-            total_available = 0
-            for wh in source_warehouses:
-                stock = frappe.db.get_value(
-                    "Bin",
-                    {"item_code": rm.item_code, "warehouse": wh},
-                    "actual_qty",
-                ) or 0
-
-                print(f"Checking Warehouse {wh} → Stock: {stock}")
-                total_available += stock
-
-            print(f"TOTAL AVAILABLE for {rm.item_code} → {total_available}")
-
-            if total_available < required_qty:
-                frappe.throw(
-                    f"[SHORTAGE] {item_link} ({rm.item_code}) has insufficient stock.<br>"
-                    f"<b>Required:</b> {required_qty}<br>"
-                    f"<b>Available:</b> {total_available}<br>"
-                    f"Please update stock in required warehouses before creating MR.",
-                    title="Insufficient Stock"
-                )
-
-            remaining = required_qty
-
-            for wh in source_warehouses:
-
-                stock = frappe.db.get_value(
-                    "Bin",
-                    {"item_code": rm.item_code, "warehouse": wh},
-                    "actual_qty",
-                ) or 0
-
-                if stock <= 0:
-                    continue
-
-                take = min(stock, remaining)
-
-                print(f" → Taking {take} from {wh}")
-
-                mr_rows.append({
+            pending_doc = frappe.db.get_value(
+                "Sales Order RM Pending",
+                {"sales_order": sales_order, "item_code": rm.item_code, "company": sales_order_doc.company},
+                ["pending_qty"], as_dict=True
+            )
+            if not pending_doc:
+                frappe.get_doc({
+                    "doctype": "Sales Order RM Pending",
+                    "company": sales_order_doc.company,
+                    "sales_order": sales_order,
                     "item_code": rm.item_code,
-                    "item_name": item_name,
-                    "qty": take,
-                    "uom": rm.uom,
-                    "stock_uom": rm.stock_uom,
-                    "from_warehouse": wh,
-                })
+                    "required_qty": required_qty,
+                    "pending_qty": required_qty,
+                    "issued_qty": 0,
+                    "uom": rm.uom
+                }).insert(ignore_permissions=True)
 
-                remaining -= take
-                if remaining <= 0:
-                    break
-
-    if not mr_rows:
-        frappe.throw("No raw materials found or all BOMs are missing.")
-
-    existing = frappe.db.get_value(
-        "Material Request Item",
-        {"sales_order": sales_order_doc.name},
-        "parent",
+    #Fetch pending items
+    pending_items = frappe.get_all(
+        "Sales Order RM Pending",
+        filters={"sales_order": sales_order, "company": sales_order_doc.company, "pending_qty": (">", 0)},
+        fields=["item_code", "pending_qty", "uom"]
     )
+    if not pending_items:
+        frappe.throw("No pending RM for this Sales Order.")
 
-    if existing:
-        frappe.throw(f"Material Request {existing} already exists.")
+    #Allocate stock from WH1, WH2
+    for row in pending_items:
+        remaining = row.pending_qty
+        item_name = frappe.db.get_value("Item", row.item_code, "item_name") or row.item_code
+
+        for wh in source_warehouses:
+            if remaining <= 0: break
+            stock = frappe.db.get_value("Bin", {"item_code": row.item_code, "warehouse": wh}, "actual_qty") or 0
+            if stock <= 0: continue
+            take = min(stock, remaining)
+            frappe.log_error(f"[DEBUG] Allocating {take} of {row.item_code} from {wh}, Pending: {remaining}", "MR Allocation")
+            mr_rows.append({
+                "item_code": row.item_code,
+                "item_name": item_name,
+                "qty": take,
+                "uom": row.uom,
+                "from_warehouse": wh,
+            })
+            remaining -= take
+
+    #Create MR
+    if not mr_rows:
+        frappe.throw("No stock available to create Material Request.")
 
     mr = frappe.new_doc("Material Request")
     mr.material_request_type = "Material Transfer"
     mr.company = sales_order_doc.company
-    mr.sales_order = sales_order_doc.name
+    mr.sales_order = sales_order
     mr.required_by = frappe.utils.today()
-
-    target_warehouse = "Vapi Reserved stock Godown - MLPL"
+    mr.custom_created_from_material_request_for_rm_button = 1
 
     for row in mr_rows:
-        print(
-            f"Adding Row | {row['item_code']} | {row['item_name']} | "
-            f"Qty: {row['qty']} | From: {row['from_warehouse']}"
-        )
         mr.append("items", {
             "item_code": row["item_code"],
             "item_name": row["item_name"],
             "qty": row["qty"],
             "uom": row["uom"],
-            "stock_uom": row["stock_uom"],
             "from_warehouse": row["from_warehouse"],
             "warehouse": target_warehouse,
             "schedule_date": frappe.utils.today(),
-            "sales_order": sales_order_doc.name,
+            "sales_order": sales_order,
         })
 
     mr.insert(ignore_permissions=True)
+    frappe.db.commit()
     return mr.name
