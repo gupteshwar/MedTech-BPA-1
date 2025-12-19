@@ -198,6 +198,7 @@ def create_material_request_from_bom(sales_order):
         
         for rm in bom_doc.items:
             required_qty = rm.qty * so_item.qty
+            rm_item_name = frappe.db.get_value("Item", rm.item_code, "item_name")
 
             pending_doc = frappe.db.get_value(
                 "Sales Order RM Pending",
@@ -210,6 +211,8 @@ def create_material_request_from_bom(sales_order):
                     "company": sales_order_doc.company,
                     "sales_order": sales_order,
                     "item_code": rm.item_code,
+                    "raw_material_name": rm_item_name,
+                    "fg_item_code": so_item.item_code,
                     "required_qty": required_qty,
                     "pending_qty": required_qty,
                     "issued_qty": 0,
