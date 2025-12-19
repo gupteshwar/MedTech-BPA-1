@@ -7,7 +7,9 @@
  "field_order": [
   "column_break_otli",
   "sales_order",
+  "fg_item_code",
   "item_code",
+  "raw_material_name",
   "required_qty",
   "issued_qty",
   "pending_qty",
@@ -59,12 +61,23 @@
    "fieldname": "column_break_otli",
    "fieldtype": "Column Break",
    "search_index": 1
+  },
+  {
+   "fieldname": "fg_item_code",
+   "fieldtype": "Link",
+   "label": "FG Item Code",
+   "options": "Item"
+  },
+  {
+   "fieldname": "raw_material_name",
+   "fieldtype": "Data",
+   "label": "Raw Material Name"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-12-16 13:55:25.833669",
+ "modified": "2025-12-19 11:42:53.944012",
  "modified_by": "Administrator",
  "module": "MedTech-BPA",
  "name": "Sales Order RM Pending",
