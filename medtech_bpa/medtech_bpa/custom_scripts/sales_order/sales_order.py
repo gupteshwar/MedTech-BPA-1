@@ -192,6 +192,8 @@ def create_material_request_from_bom(sales_order):
 
     # Create pending records if not exist
     for so_item in sales_order_doc.items:
+        fg_item_name = frappe.db.get_value("Item", so_item.item_code, "item_name")
+        order_type = sales_order_doc.order_type
         bom_name = frappe.db.get_value("BOM", {"item": so_item.item_code, "is_default": 1, "is_active": 1}, "name")
         if not bom_name: continue
         bom_doc = frappe.get_doc("BOM", bom_name)
@@ -213,6 +215,8 @@ def create_material_request_from_bom(sales_order):
                     "item_code": rm.item_code,
                     "raw_material_name": rm_item_name,
                     "fg_item_code": so_item.item_code,
+                    "fg_item_name": fg_item_name,
+                    "order_type": order_type,
                     "required_qty": required_qty,
                     "pending_qty": required_qty,
                     "issued_qty": 0,
