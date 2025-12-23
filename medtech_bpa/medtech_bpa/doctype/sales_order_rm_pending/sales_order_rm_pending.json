@@ -7,7 +7,11 @@
  "field_order": [
   "column_break_otli",
   "sales_order",
+  "order_type",
+  "fg_item_code",
+  "fg_item_name",
   "item_code",
+  "raw_material_name",
   "required_qty",
   "issued_qty",
   "pending_qty",
@@ -19,52 +23,84 @@
    "fieldname": "sales_order",
    "fieldtype": "Link",
    "label": "Sales Order",
-   "options": "Sales Order"
+   "options": "Sales Order",
+   "read_only": 1
   },
   {
    "fieldname": "item_code",
    "fieldtype": "Link",
    "label": "Raw Material",
    "options": "Item",
+   "read_only": 1,
    "search_index": 1
   },
   {
    "fieldname": "required_qty",
    "fieldtype": "Float",
+   "in_filter": 1,
    "label": "Required Qty"
   },
   {
    "fieldname": "issued_qty",
    "fieldtype": "Float",
-   "label": "Issued Qty"
+   "label": "Issued Qty",
+   "read_only": 1
   },
   {
    "fieldname": "pending_qty",
    "fieldtype": "Float",
-   "label": "Pending Qty"
+   "label": "Pending Qty",
+   "read_only": 1
   },
   {
    "fieldname": "uom",
    "fieldtype": "Link",
    "label": "UOM",
-   "options": "UOM"
+   "options": "UOM",
+   "read_only": 1
   },
   {
    "fieldname": "company",
    "fieldtype": "Link",
    "label": "Company",
-   "options": "Company"
+   "options": "Company",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_otli",
    "fieldtype": "Column Break",
    "search_index": 1
+  },
+  {
+   "fieldname": "fg_item_code",
+   "fieldtype": "Link",
+   "label": "FG Item Code",
+   "options": "Item",
+   "read_only": 1
+  },
+  {
+   "fieldname": "raw_material_name",
+   "fieldtype": "Data",
+   "label": "Raw Material Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "order_type",
+   "fieldtype": "Data",
+   "label": "Order Type",
+   "read_only": 1
+  },
+  {
+   "fieldname": "fg_item_name",
+   "fieldtype": "Data",
+   "label": "FG Item Name",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-12-16 13:55:25.833669",
+ "modified": "2025-12-19 15:09:22.382472",
  "modified_by": "Administrator",
  "module": "MedTech-BPA",
  "name": "Sales Order RM Pending",
