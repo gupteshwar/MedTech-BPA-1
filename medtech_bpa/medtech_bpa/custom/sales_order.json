@@ -1963,7 +1963,7 @@
    "_comments": null,
    "_liked_by": null,
    "_user_tags": null,
-   "creation": "2025-04-29 16:52:35.305947",
+   "creation": "2025-04-23 12:03:22.698063",
    "default_value": null,
    "doc_type": "Sales Order",
    "docstatus": 0,
@@ -1982,7 +1982,7 @@
    "property": "options",
    "property_type": "Text",
    "row_name": null,
-   "value": "\nDomestic Sales\nOEM\nMaintenance\nShopping Cart\nExport\nDomestic\nAmazon\nURD Sales\nRepairing \nSample\nMerchant Export\nBranch Transfer\nMerchant trade export sales\nWithin Warranty\nOut of Warranty\nMeesho\nAsset Transfer\nE-Commerce Branch Transfer\nVapi Branch Transfer\nSnapdeal\nGift\nTender\nExhibition\nPharmeasy\nRetail Chain Store\nE-Commerce Dealer"
+   "value": "\nDomestic Sales\nMaintenance\nShopping Cart\nExport\nDomestic\nAmazon\nURD Sales\nRepairing \nSample\nMerchant Export\nBranch Transfer\nMerchant trade export sales\nWithin Warranty\nOut of Warranty\nMeesho\nAsset Transfer\nE-Commerce Branch Transfer\nVapi Branch Transfer\nSnapdeal\nGift\nTender\nExhibition\nPharmeasy\nRetail Chain Store\nE-Commerce Dealer"
   },
   {
    "_assign": null,

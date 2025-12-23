@@ -12,9 +12,12 @@ def validate(doc, method):
 		so_doc.workflow_state = "Pending for Bill"
 		so_doc.db_update()
 		frappe.db.commit()
-
+		
 def on_update_after_submit(doc, method):
     update_dn_modified(doc,method)
+
+def on_update(doc,method):
+	update_dn_modified(doc,method)
 
 
 def update_dn_modified(doc,method):
