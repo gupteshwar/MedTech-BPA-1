@@ -192,24 +192,16 @@ def create_material_request_from_bom(sales_order):
 
     # Create pending records if not exist
     for so_item in sales_order_doc.items:
-        fg_item_name = frappe.db.get_value("Item", so_item.item_code, "item_name")
-        order_type = sales_order_doc.order_type
         bom_name = frappe.db.get_value("BOM", {"item": so_item.item_code, "is_default": 1, "is_active": 1}, "name")
         if not bom_name: continue
         bom_doc = frappe.get_doc("BOM", bom_name)
         
         for rm in bom_doc.items:
             required_qty = rm.qty * so_item.qty
-            rm_item_name = frappe.db.get_value("Item", rm.item_code, "item_name")
 
             pending_doc = frappe.db.get_value(
                 "Sales Order RM Pending",
-                {
-                    "sales_order": sales_order,
-                    "item_code": rm.item_code,
-                    "fg_item_code": so_item.item_code,   # ADDED
-                    "company": sales_order_doc.company
-                },
+                {"sales_order": sales_order, "item_code": rm.item_code, "company": sales_order_doc.company},
                 ["pending_qty"], as_dict=True
             )
             if not pending_doc:
@@ -218,10 +210,6 @@ def create_material_request_from_bom(sales_order):
                     "company": sales_order_doc.company,
                     "sales_order": sales_order,
                     "item_code": rm.item_code,
-                    "raw_material_name": rm_item_name,
-                    "fg_item_code": so_item.item_code,
-                    "fg_item_name": fg_item_name,
-                    "order_type": order_type,
                     "required_qty": required_qty,
                     "pending_qty": required_qty,
                     "issued_qty": 0,
@@ -232,7 +220,7 @@ def create_material_request_from_bom(sales_order):
     pending_items = frappe.get_all(
         "Sales Order RM Pending",
         filters={"sales_order": sales_order, "company": sales_order_doc.company, "pending_qty": (">", 0)},
-        fields=["item_code", "pending_qty", "uom", "fg_item_code"]   # ADDED
+        fields=["item_code", "pending_qty", "uom"]
     )
     if not pending_items:
         frappe.throw("No pending RM for this Sales Order.")
@@ -254,7 +242,6 @@ def create_material_request_from_bom(sales_order):
                 "qty": take,
                 "uom": row.uom,
                 "from_warehouse": wh,
-                "fg_item_code": row.fg_item_code   # ADDED
             })
             remaining -= take
 
@@ -279,7 +266,6 @@ def create_material_request_from_bom(sales_order):
             "warehouse": target_warehouse,
             "schedule_date": frappe.utils.today(),
             "sales_order": sales_order,
-            "fg_item_code": row["fg_item_code"]   # ADDED
         })
 
     mr.insert(ignore_permissions=True)
