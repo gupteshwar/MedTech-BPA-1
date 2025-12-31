@@ -37,8 +37,8 @@
   {
    "fieldname": "required_qty",
    "fieldtype": "Float",
-   "in_filter": 1,
-   "label": "Required Qty"
+   "label": "Required Qty",
+   "read_only": 1
   },
   {
    "fieldname": "issued_qty",
@@ -100,7 +100,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-12-19 15:09:22.382472",
+ "modified": "2025-12-28 14:58:00.231871",
  "modified_by": "Administrator",
  "module": "MedTech-BPA",
  "name": "Sales Order RM Pending",
