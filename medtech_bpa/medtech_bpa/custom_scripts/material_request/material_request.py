@@ -12,9 +12,7 @@ def on_submit(doc, method):
 
         sales_order = doc.items[0].sales_order
 
-        # -------------------------------
         # CREATE STOCK ENTRY
-        # -------------------------------
         stock_entry = frappe.new_doc("Stock Entry")
         stock_entry.stock_entry_type = "Material Transfer"
         stock_entry.purpose = "Material Transfer"
@@ -36,7 +34,7 @@ def on_submit(doc, method):
                 "t_warehouse": item.warehouse,
                 "material_request": doc.name,
                 "material_request_item": item.name,
-                "fg_item_code": item.custom_fg_item_code or ""   # ✅ FG PASS
+                "fg_item_code": item.custom_fg_item_code or ""   # FG PASS
             })
             has_items = True
 
@@ -109,3 +107,67 @@ def on_submit(doc, method):
             "Stock Entry creation failed from Material Request"
         )
         frappe.throw("Failed to create Stock Entry. Please check Error Log.")
+
+
+def on_cancel(doc, method):
+    # Only MR created from RM button
+    if not doc.get("custom_created_from_material_request_for_rm_button"):
+        return
+
+    try:
+        if not doc.items or not doc.items[0].sales_order:
+            return
+
+        sales_order = doc.items[0].sales_order
+
+        for item in doc.items:
+
+            if (item.qty or 0) <= 0:
+                continue
+
+            fg_code = item.custom_fg_item_code or ""
+
+            pending_row = frappe.db.get_value(
+                "Sales Order RM Pending",
+                {
+                    "sales_order": sales_order,
+                    "item_code": item.item_code,
+                    "fg_item_code": fg_code,
+                    "company": doc.company
+                },
+                ["name", "pending_qty", "issued_qty"],
+                as_dict=True
+            )
+
+            if not pending_row:
+                continue
+
+            revert_qty = min(item.qty, pending_row.issued_qty)
+
+            if revert_qty <= 0:
+                continue
+
+            frappe.db.sql("""
+                UPDATE `tabSales Order RM Pending`
+                SET
+                    issued_qty = issued_qty - %s,
+                    pending_qty = pending_qty + %s
+                WHERE name = %s
+            """, (
+                revert_qty,
+                revert_qty,
+                pending_row.name
+            ))
+
+        frappe.db.commit()
+
+        frappe.msgprint(
+            "Sales Order RM Pending quantities reverted successfully."
+        )
+
+    except Exception:
+        frappe.log_error(
+            frappe.get_traceback(),
+            "RM Pending revert failed on MR Cancel"
+        )
+        frappe.throw("Failed to revert RM Pending on Material Request cancel.")
