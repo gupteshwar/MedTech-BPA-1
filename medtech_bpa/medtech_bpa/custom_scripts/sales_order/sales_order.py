@@ -254,7 +254,7 @@ def create_material_request_from_bom(sales_order):
                 "qty": take,
                 "uom": row.uom,
                 "from_warehouse": wh,
-                "fg_item_code": row.fg_item_code   # ADDED
+                "fg_item_code": row.fg_item_code 
             })
             remaining -= take
 
@@ -279,7 +279,7 @@ def create_material_request_from_bom(sales_order):
             "warehouse": target_warehouse,
             "schedule_date": frappe.utils.today(),
             "sales_order": sales_order,
-            "fg_item_code": row["fg_item_code"]   # ADDED
+            "custom_fg_item_code": row["fg_item_code"] 
         })
 
     mr.insert(ignore_permissions=True)

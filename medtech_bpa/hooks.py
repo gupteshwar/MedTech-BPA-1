@@ -192,7 +192,8 @@ doc_events = {
 	"autoname":"medtech_bpa.medtech_bpa.custom_scripts.bom.bom.autoname"
 	},
 	"Material Request":{
-		"on_submit":"medtech_bpa.medtech_bpa.custom_scripts.material_request.material_request.on_submit"
+		"on_submit":"medtech_bpa.medtech_bpa.custom_scripts.material_request.material_request.on_submit",
+        "on_cancel":"medtech_bpa.medtech_bpa.custom_scripts.material_request.material_request.on_cancel"
 	},
 
 	
