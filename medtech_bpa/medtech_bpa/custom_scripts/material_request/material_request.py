@@ -6,9 +6,8 @@ def on_submit(doc, method):
         return
 
     try:
-        # Get Sales Order safely
         if not doc.items or not doc.items[0].sales_order:
-            frappe.throw("Sales Order not found in Material Request Items.")
+            frappe.throw("Sales Order not found in Material Request.")
 
         sales_order = doc.items[0].sales_order
 
@@ -34,7 +33,8 @@ def on_submit(doc, method):
                 "t_warehouse": item.warehouse,
                 "material_request": doc.name,
                 "material_request_item": item.name,
-                "fg_item_code": item.custom_fg_item_code or ""   # FG PASS
+                "custom_fg_item_code": item.custom_fg_item_code,
+                "custom_so_item_row_id": item.custom_so_item_row_id
             })
             has_items = True
 
@@ -44,56 +44,47 @@ def on_submit(doc, method):
         stock_entry.insert(ignore_permissions=True)
         stock_entry.submit()
 
-        # -----------------------------------
-        # UPDATE SALES ORDER RM PENDING (FG SAFE)
-        # -----------------------------------
+        # -------------------------------
+        # UPDATE SALES ORDER RM PENDING
+        # -------------------------------
         for se_item in stock_entry.items:
 
-            fg_code = se_item.fg_item_code or ""
+            issue_qty = se_item.qty or 0
+            if issue_qty <= 0:
+                continue
 
-            # First try FG-wise row
-            pending_row = frappe.db.get_value(
-                "Sales Order RM Pending",
+            child_row = frappe.db.get_value(
+                "Sales Order RM Pending Item",
                 {
-                    "sales_order": sales_order,
-                    "item_code": se_item.item_code,
-                    "fg_item_code": fg_code,
-                    "company": doc.company
+                    "parenttype": "Sales Order RM Pending",
+                    "raw_material": se_item.item_code,
+                    "parent": frappe.db.get_value(
+                        "Sales Order RM Pending",
+                        {
+                            "sales_order": sales_order,
+                            "fg_item_code": se_item.custom_fg_item_code,
+                            "so_item_row_id": se_item.custom_so_item_row_id,
+                            "company": doc.company
+                        },
+                        "name"
+                    )
                 },
-                ["name", "pending_qty"],
+                ["name", "pending_qty", "issued_qty"],
                 as_dict=True
             )
 
-            # Fallback → old records without FG
-            if not pending_row:
-                pending_row = frappe.db.get_value(
-                    "Sales Order RM Pending",
-                    {
-                        "sales_order": sales_order,
-                        "item_code": se_item.item_code,
-                        "company": doc.company
-                    },
-                    ["name", "pending_qty"],
-                    as_dict=True
-                )
-
-            if not pending_row or pending_row.pending_qty <= 0:
+            if not child_row or child_row.pending_qty <= 0:
                 continue
 
-            issue_qty = min(se_item.qty, pending_row.pending_qty)
+            actual_issue = min(issue_qty, child_row.pending_qty)
 
             frappe.db.sql("""
-                UPDATE `tabSales Order RM Pending`
+                UPDATE `tabSales Order RM Pending Item`
                 SET
                     issued_qty = issued_qty + %s,
-                    pending_qty = GREATEST(pending_qty - %s, 0)
+                    pending_qty = pending_qty - %s
                 WHERE name = %s
-            """, (
-                issue_qty,
-                issue_qty,
-                pending_row.name
-            ))
-
+            """, (actual_issue, actual_issue, child_row.name))
         frappe.db.commit()
 
         frappe.msgprint(
@@ -102,11 +93,8 @@ def on_submit(doc, method):
         )
 
     except Exception:
-        frappe.log_error(
-            frappe.get_traceback(),
-            "Stock Entry creation failed from Material Request"
-        )
-        frappe.throw("Failed to create Stock Entry. Please check Error Log.")
+        frappe.log_error(frappe.get_traceback(), "MR Submit Failed")
+        frappe.throw("Failed to submit Material Request.")
 
 
 def on_cancel(doc, method):
@@ -115,6 +103,7 @@ def on_cancel(doc, method):
         return
 
     try:
+        # Safety: Sales Order must exist
         if not doc.items or not doc.items[0].sales_order:
             return
 
@@ -126,29 +115,45 @@ def on_cancel(doc, method):
                 continue
 
             fg_code = item.custom_fg_item_code or ""
+            so_row_id = item.custom_so_item_row_id or ""
 
-            pending_row = frappe.db.get_value(
+            # Find parent RM Pending doc
+            parent_name = frappe.db.get_value(
                 "Sales Order RM Pending",
                 {
                     "sales_order": sales_order,
-                    "item_code": item.item_code,
                     "fg_item_code": fg_code,
+                    "so_item_row_id": so_row_id,
                     "company": doc.company
                 },
-                ["name", "pending_qty", "issued_qty"],
+                "name"
+            )
+
+            if not parent_name:
+                continue
+
+            # Find child RM Pending Item
+            child_row = frappe.db.get_value(
+                "Sales Order RM Pending Item",
+                {
+                    "parent": parent_name,
+                    "raw_material": item.item_code
+                },
+                ["name", "issued_qty"],
                 as_dict=True
             )
 
-            if not pending_row:
+            if not child_row or (child_row.issued_qty or 0) <= 0:
                 continue
 
-            revert_qty = min(item.qty, pending_row.issued_qty)
+            revert_qty = min(item.qty, child_row.issued_qty)
 
             if revert_qty <= 0:
                 continue
 
+            # Revert quantities
             frappe.db.sql("""
-                UPDATE `tabSales Order RM Pending`
+                UPDATE `tabSales Order RM Pending Item`
                 SET
                     issued_qty = issued_qty - %s,
                     pending_qty = pending_qty + %s
@@ -156,7 +161,7 @@ def on_cancel(doc, method):
             """, (
                 revert_qty,
                 revert_qty,
-                pending_row.name
+                child_row.name
             ))
 
         frappe.db.commit()
