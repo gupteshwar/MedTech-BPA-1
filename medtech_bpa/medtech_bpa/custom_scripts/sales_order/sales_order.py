@@ -186,14 +186,24 @@ def create_material_request_from_bom(sales_order):
     medtech_settings = frappe.get_single("MedTech Settings")
     source_warehouses = [
         row.warehouse
-        for row in medtech_settings.rm_warehouse_list
+        for row in medtech_settings.rm_source_warehouse
         if row.warehouse
     ]
 
     if not source_warehouses:
         frappe.throw("RM Warehouse List is empty in MedTech Settings")
 
-    target_warehouse = "Vapi Reserved stock Godown - MLPL"
+    # Select Dynamic target warehouse from MedTech Settings
+    target_warehouses = [
+        row.warehouse
+        for row in medtech_settings.rm_target_warehouse
+        if row.warehouse
+    ]
+
+    if not target_warehouses:
+        frappe.throw("RM Target Warehouse List is empty in MedTech Settings")
+
+    target_warehouse = target_warehouses[0]
 
     mr_rows = []
 
