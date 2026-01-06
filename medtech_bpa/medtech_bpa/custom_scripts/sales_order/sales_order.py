@@ -3,9 +3,7 @@ import frappe
 from frappe import _
 from frappe.utils import getdate, flt
 from frappe.utils.background_jobs import enqueue
-from frappe.utils import nowdate, add_days
-
-
+from erpnext.manufacturing.doctype.bom.bom import get_bom_items_as_dict
 
 @frappe.whitelist()
 def send_so_notification(sales_order):
@@ -183,82 +181,151 @@ def before_save(doc,method):
 @frappe.whitelist()
 def create_material_request_from_bom(sales_order):
     sales_order_doc = frappe.get_doc("Sales Order", sales_order)
+
+    # select Dynamic warehouse from Medtech settings
+    medtech_settings = frappe.get_single("MedTech Settings")
     source_warehouses = [
-        "Vapi GST - RAW MATERIAL - MLPL",
-        "Vapi-Concessional Godown - MLPL",
+        row.warehouse
+        for row in medtech_settings.rm_warehouse_list
+        if row.warehouse
     ]
+
+    if not source_warehouses:
+        frappe.throw("RM Warehouse List is empty in MedTech Settings")
+
     target_warehouse = "Vapi Reserved stock Godown - MLPL"
+
     mr_rows = []
 
-    # Create pending records if not exist
+    # CREATE / UPDATE SALES ORDER RM PENDING (PARENT + CHILD)
     for so_item in sales_order_doc.items:
         fg_item_name = frappe.db.get_value("Item", so_item.item_code, "item_name")
         order_type = sales_order_doc.order_type
-        bom_name = frappe.db.get_value("BOM", {"item": so_item.item_code, "is_default": 1, "is_active": 1}, "name")
-        if not bom_name: continue
-        bom_doc = frappe.get_doc("BOM", bom_name)
-        
-        for rm in bom_doc.items:
-            required_qty = rm.qty * so_item.qty
-            rm_item_name = frappe.db.get_value("Item", rm.item_code, "item_name")
 
-            pending_doc = frappe.db.get_value(
-                "Sales Order RM Pending",
-                {
-                    "sales_order": sales_order,
-                    "item_code": rm.item_code,
-                    "fg_item_code": so_item.item_code,   # ADDED
-                    "company": sales_order_doc.company
-                },
-                ["pending_qty"], as_dict=True
-            )
-            if not pending_doc:
-                frappe.get_doc({
-                    "doctype": "Sales Order RM Pending",
-                    "company": sales_order_doc.company,
-                    "sales_order": sales_order,
-                    "item_code": rm.item_code,
+        bom_name = frappe.db.get_value(
+            "BOM",
+            {"item": so_item.item_code, "is_default": 1, "is_active": 1},
+            "name"
+        )
+        if not bom_name:
+            continue
+
+        # bom_doc = frappe.get_doc("BOM", bom_name)
+        bom_items = get_bom_items_as_dict(
+            bom=bom_name,
+            company=sales_order_doc.company,
+            qty=so_item.qty,          # FG quantity
+            fetch_exploded=0          
+        )
+
+        if not bom_items:
+            continue
+
+        # Parent (FG LEVEL)
+        parent_name = frappe.db.get_value(
+            "Sales Order RM Pending",
+            {
+                "sales_order": sales_order,
+                "so_item_row_id": so_item.name,
+                "company": sales_order_doc.company
+            },
+            "name"
+        )
+
+        if parent_name:
+            parent = frappe.get_doc("Sales Order RM Pending", parent_name)
+        else:
+            parent = frappe.get_doc({
+                "doctype": "Sales Order RM Pending",
+                "company": sales_order_doc.company,
+                "sales_order": sales_order,
+                "order_type": order_type,
+                "so_item_row_id": so_item.name,
+                "fg_item_code": so_item.item_code,
+                "fg_item_name": fg_item_name
+            })
+            parent.insert(ignore_permissions=True)
+
+        # Child table (RAW MATERIAL LEVEL)
+        for rm_item_code, rm in bom_items.items():
+            required_qty = rm.get("qty", 0)
+            if required_qty <= 0:
+                continue
+
+            rm_item_name = frappe.db.get_value("Item", rm_item_code, "item_name")
+
+            existing_child = None
+            for row in parent.raw_materials:
+                if row.raw_material == rm_item_code:
+                    existing_child = row
+                    break
+
+            if not existing_child:
+                parent.append("raw_materials", {
+                    "custom_so_item_row_id": so_item.name,
+                    "raw_material": rm_item_code,
                     "raw_material_name": rm_item_name,
-                    "fg_item_code": so_item.item_code,
-                    "fg_item_name": fg_item_name,
-                    "order_type": order_type,
                     "required_qty": required_qty,
-                    "pending_qty": required_qty,
                     "issued_qty": 0,
-                    "uom": rm.uom
-                }).insert(ignore_permissions=True)
+                    "pending_qty": required_qty,
+                    "uom": rm.get("uom")
+                })
+        parent.save(ignore_permissions=True)
 
-    #Fetch pending items
-    pending_items = frappe.get_all(
+    # FETCH PENDING RAW MATERIALS (FROM CHILD TABLE)
+    parents = frappe.get_all(
         "Sales Order RM Pending",
-        filters={"sales_order": sales_order, "company": sales_order_doc.company, "pending_qty": (">", 0)},
-        fields=["item_code", "pending_qty", "uom", "fg_item_code"]   # ADDED
+        filters={
+            "sales_order": sales_order,
+            "company": sales_order_doc.company
+        },
+        fields=["name", "fg_item_code"]
     )
-    if not pending_items:
+
+    if not parents:
         frappe.throw("No pending RM for this Sales Order.")
 
-    #Allocate stock from WH1, WH2
-    for row in pending_items:
-        remaining = row.pending_qty
-        item_name = frappe.db.get_value("Item", row.item_code, "item_name") or row.item_code
+    # ALLOCATE STOCK
+    for p in parents:
+        parent = frappe.get_doc("Sales Order RM Pending", p.name)
 
-        for wh in source_warehouses:
-            if remaining <= 0: break
-            stock = frappe.db.get_value("Bin", {"item_code": row.item_code, "warehouse": wh}, "actual_qty") or 0
-            if stock <= 0: continue
-            take = min(stock, remaining)
-            frappe.log_error(f"[DEBUG] Allocating {take} of {row.item_code} from {wh}, Pending: {remaining}", "MR Allocation")
-            mr_rows.append({
-                "item_code": row.item_code,
-                "item_name": item_name,
-                "qty": take,
-                "uom": row.uom,
-                "from_warehouse": wh,
-                "fg_item_code": row.fg_item_code 
-            })
-            remaining -= take
+        for row in parent.raw_materials:
+            if (row.pending_qty or 0) <= 0:
+                continue
 
-    #Create MR
+            remaining = row.pending_qty
+            item_name = frappe.db.get_value("Item", row.raw_material, "item_name") or row.raw_material
+
+            for wh in source_warehouses:
+                if remaining <= 0:
+                    break
+
+                stock = frappe.db.get_value(
+                    "Bin",
+                    {"item_code": row.raw_material, "warehouse": wh},
+                    "actual_qty"
+                ) or 0
+
+                if stock <= 0:
+                    continue
+
+                take = min(stock, remaining)
+
+                mr_rows.append({
+                    "item_code": row.raw_material,
+                    "item_name": item_name,
+                    "qty": take,
+                    "uom": row.uom,
+                    "from_warehouse": wh,
+                    "fg_item_code": parent.fg_item_code,
+                    "so_item_row_id": parent.so_item_row_id,
+                    "parent_name": parent.name,
+                    "child_name": row.name
+                })
+
+                remaining -= take
+
+    # CREATE MATERIAL REQUEST
     if not mr_rows:
         frappe.throw("No stock available to create Material Request.")
 
@@ -279,9 +346,14 @@ def create_material_request_from_bom(sales_order):
             "warehouse": target_warehouse,
             "schedule_date": frappe.utils.today(),
             "sales_order": sales_order,
-            "custom_fg_item_code": row["fg_item_code"] 
+            "custom_fg_item_code": row["fg_item_code"],
+            "custom_so_item_row_id": row["so_item_row_id"],
+            "custom_rm_pending_parent": row["parent_name"],
+            "custom_rm_pending_child": row["child_name"]
         })
 
     mr.insert(ignore_permissions=True)
     frappe.db.commit()
+
     return mr.name
+

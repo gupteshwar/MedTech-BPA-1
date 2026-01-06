@@ -182,8 +182,7 @@ doc_events = {
 	},
 	"Stock Entry":{
 		"validate" : "medtech_bpa.medtech_bpa.custom_scripts.stock_entry.stock_entry.after_insert",
-		"on_submit" : "medtech_bpa.medtech_bpa.custom_scripts.stock_entry.stock_entry.on_submit",
-	    # "on_cancel": "medtech_bpa.medtech_bpa.custom_scripts.stock_entry.stock_entry.on_cancel"
+		"on_submit" : "medtech_bpa.medtech_bpa.custom_scripts.stock_entry.stock_entry.on_submit"
 	},
 	"Purchase Invoice":{
 		"validate":"medtech_bpa.medtech_bpa.custom_scripts.purchase_invoice.purchase_invoice.validate"

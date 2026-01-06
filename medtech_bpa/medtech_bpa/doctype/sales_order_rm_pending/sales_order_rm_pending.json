@@ -5,18 +5,15 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "column_break_otli",
+  "company",
   "sales_order",
   "order_type",
+  "column_break_okzp",
+  "so_item_row_id",
   "fg_item_code",
   "fg_item_name",
-  "item_code",
-  "raw_material_name",
-  "required_qty",
-  "issued_qty",
-  "pending_qty",
-  "uom",
-  "company"
+  "section_break_whax",
+  "raw_materials"
  ],
  "fields": [
   {
@@ -27,39 +24,6 @@
    "read_only": 1
   },
   {
-   "fieldname": "item_code",
-   "fieldtype": "Link",
-   "label": "Raw Material",
-   "options": "Item",
-   "read_only": 1,
-   "search_index": 1
-  },
-  {
-   "fieldname": "required_qty",
-   "fieldtype": "Float",
-   "label": "Required Qty",
-   "read_only": 1
-  },
-  {
-   "fieldname": "issued_qty",
-   "fieldtype": "Float",
-   "label": "Issued Qty",
-   "read_only": 1
-  },
-  {
-   "fieldname": "pending_qty",
-   "fieldtype": "Float",
-   "label": "Pending Qty",
-   "read_only": 1
-  },
-  {
-   "fieldname": "uom",
-   "fieldtype": "Link",
-   "label": "UOM",
-   "options": "UOM",
-   "read_only": 1
-  },
-  {
    "fieldname": "company",
    "fieldtype": "Link",
    "label": "Company",
@@ -67,21 +31,10 @@
    "read_only": 1
   },
   {
-   "fieldname": "column_break_otli",
-   "fieldtype": "Column Break",
-   "search_index": 1
-  },
-  {
    "fieldname": "fg_item_code",
    "fieldtype": "Link",
    "label": "FG Item Code",
    "options": "Item",
-   "read_only": 1
-  },
-  {
-   "fieldname": "raw_material_name",
-   "fieldtype": "Data",
-   "label": "Raw Material Name",
    "read_only": 1
   },
   {
@@ -95,12 +48,32 @@
    "fieldtype": "Data",
    "label": "FG Item Name",
    "read_only": 1
+  },
+  {
+   "fieldname": "column_break_okzp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_whax",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "so_item_row_id",
+   "fieldtype": "Data",
+   "label": "SO Item Row ID",
+   "read_only": 1
+  },
+  {
+   "fieldname": "raw_materials",
+   "fieldtype": "Table",
+   "label": "Raw Materials",
+   "options": "Sales Order RM Pending Item"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-02 14:54:10.334581",
+ "modified": "2026-01-06 10:46:11.007868",
  "modified_by": "Administrator",
  "module": "MedTech-BPA",
  "name": "Sales Order RM Pending",
