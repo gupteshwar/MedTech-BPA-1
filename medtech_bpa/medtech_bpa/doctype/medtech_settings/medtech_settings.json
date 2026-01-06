@@ -21,7 +21,11 @@
   "section_break_1",
   "fg_item_group",
   "section_break_3",
-  "fg_warehouse_group"
+  "fg_warehouse_group",
+  "section_break_jxrl",
+  "rm_source_warehouse",
+  "section_break_cdyi",
+  "rm_target_warehouse"
  ],
  "fields": [
   {
@@ -119,12 +123,33 @@
    "fieldtype": "Table",
    "label": "QC Warehouse List",
    "options": "QC Warehouse List"
+  },
+  {
+   "fieldname": "section_break_jxrl",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "rm_source_warehouse",
+   "fieldtype": "Table",
+   "label": "RM Source Warehouse",
+   "options": "RM Source Warehouse"
+  },
+  {
+   "fieldname": "section_break_cdyi",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "rm_target_warehouse",
+   "fieldtype": "Table",
+   "label": "RM Target Warehouse",
+   "options": "RM Target Warehouse"
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2021-04-19 17:27:31.832143",
+ "modified": "2026-01-06 15:06:53.681475",
  "modified_by": "Administrator",
  "module": "MedTech-BPA",
  "name": "MedTech Settings",
@@ -142,7 +167,10 @@
   }
  ],
  "quick_entry": 1,
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }
