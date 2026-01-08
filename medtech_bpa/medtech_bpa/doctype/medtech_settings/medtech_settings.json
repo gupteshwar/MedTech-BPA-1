@@ -131,7 +131,7 @@
   {
    "fieldname": "rm_source_warehouse",
    "fieldtype": "Table",
-   "label": "RM Source Warehouse",
+   "label": "RM Source Warehouse(Stock Reserved)",
    "options": "RM Source Warehouse"
   },
   {
@@ -141,7 +141,7 @@
   {
    "fieldname": "rm_target_warehouse",
    "fieldtype": "Table",
-   "label": "RM Target Warehouse",
+   "label": "RM Target Warehouse(Stock Reserved)",
    "options": "RM Target Warehouse"
   }
  ],
@@ -149,7 +149,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-01-06 15:06:53.681475",
+ "modified": "2026-01-07 22:53:13.177876",
  "modified_by": "Administrator",
  "module": "MedTech-BPA",
  "name": "MedTech Settings",
