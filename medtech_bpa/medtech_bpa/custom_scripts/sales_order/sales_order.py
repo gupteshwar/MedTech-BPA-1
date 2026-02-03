@@ -296,6 +296,7 @@ def create_material_request_from_bom(sales_order):
         frappe.throw("No pending RM for this Sales Order.")
 
     # ALLOCATE STOCK
+    allocated_stock = {}
     for p in parents:
         parent = frappe.get_doc("Sales Order RM Pending", p.name)
 
@@ -310,16 +311,31 @@ def create_material_request_from_bom(sales_order):
                 if remaining <= 0:
                     break
 
-                stock = frappe.db.get_value(
+                # stock = frappe.db.get_value(
+                #     "Bin",
+                #     {"item_code": row.raw_material, "warehouse": wh},
+                #     "actual_qty"
+                # ) or 0
+
+                # if stock <= 0:
+                #     continue
+
+                # take = min(stock, remaining)
+                key = (row.raw_material, wh)
+
+                total_stock = frappe.db.get_value(
                     "Bin",
                     {"item_code": row.raw_material, "warehouse": wh},
                     "actual_qty"
                 ) or 0
 
-                if stock <= 0:
+                already_used = allocated_stock.get(key, 0)
+                available_stock = total_stock - already_used
+
+                if available_stock <= 0:
                     continue
 
-                take = min(stock, remaining)
+                take = min(available_stock, remaining)
 
                 mr_rows.append({
                     "item_code": row.raw_material,
@@ -333,6 +349,13 @@ def create_material_request_from_bom(sales_order):
                     "child_name": row.name
                 })
 
+                # update RM Pending child
+                row.issued_qty = (row.issued_qty or 0) + take
+                row.pending_qty = max(row.required_qty - row.issued_qty, 0)
+
+                row.save(ignore_permissions=True)
+
+                allocated_stock[key] = already_used + take
                 remaining -= take
 
     # CREATE MATERIAL REQUEST
