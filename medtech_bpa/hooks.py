@@ -121,7 +121,7 @@ scheduler_events = {
         "30 16 * * *": [  # Trigger at 4:00 PM daily
             "medtech_bpa.email_cron.outstanding_invoice.send_invoice_summary_email"
         ],
-		"0 19 * * *": [
+		"0 20 * * *": [
             "medtech_bpa.medtech_bpa.utils.daily_credit_check"
         ]
     }

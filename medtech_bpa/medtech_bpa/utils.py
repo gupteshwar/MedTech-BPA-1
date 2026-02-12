@@ -48,15 +48,15 @@ def daily_credit_check():
             "docstatus": 1,
             "outstanding_amount": (">", 0)
         },
-        fields=["name", "customer", "due_date"]
+        fields=["name", "customer", "due_date", "posting_date", "outstanding_amount"]
     )
 
     customer_overdue = {}
 
-    for inv in invoices:
+    for inv_summary in invoices:
+        inv = frappe.get_doc("Sales Invoice", inv_summary.name)
 
         customer = frappe.get_doc("Customer", inv.customer)
-
         if not customer.custom_reminder_emails:
             continue
 
@@ -66,21 +66,39 @@ def daily_credit_check():
             if e.strip()
         ]
 
-        # send reminder from due date
+        invoice_date = inv.posting_date or "N/A"
+        outstanding = inv.outstanding_amount or 0.0
+
         if today >= getdate(inv.due_date):
             frappe.sendmail(
                 recipients=recipients,
-                subject="Payment Reminder",
-                message=f"Invoice {inv.name} payment pending. Kindly clear dues."
+                subject=f"Payment Reminder - Invoice {inv.name}",
+                message=f"""
+                <p>Dear Sir/Madam,</p>
+
+                <p>This is a gentle reminder for the payment of the invoice mentioned below:</p>
+
+                <p>
+                    <b>Invoice No.:</b> {inv.name}<br>
+                    <b>Outstanding Amount:</b> ₹{outstanding}<br>
+                    <b>Due Date:</b> {frappe.utils.formatdate(inv.due_date)}
+                </p>
+
+                <p>
+                    We request you to kindly arrange the payment at your convenience.<br>
+                    If already paid, please ignore this message.
+                </p>
+
+                <p>Thank you for your support.</p>
+                """
             )
 
         # mark overdue
-        if today > getdate(inv.due_date):
+        if today >= getdate(inv.due_date):
             customer_overdue[customer.name] = 1
 
     # disable customers having overdue invoices
     for cust in customer_overdue:
         frappe.db.set_value("Customer", cust, "disabled", 1)
 
-    frappe.db.commit()        
-            
+    frappe.db.commit()
