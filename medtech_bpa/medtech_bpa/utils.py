@@ -79,6 +79,7 @@ def daily_credit_check():
                 <p>This is a gentle reminder for the payment of the invoice mentioned below:</p>
 
                 <p>
+                    <b>Customer Name:</b> {customer.customer_name}<br>
                     <b>Invoice No.:</b> {inv.name}<br>
                     <b>Outstanding Amount:</b> ₹{outstanding}<br>
                     <b>Due Date:</b> {frappe.utils.formatdate(inv.due_date)}
