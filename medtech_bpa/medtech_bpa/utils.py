@@ -48,15 +48,25 @@ def daily_credit_check():
             "docstatus": 1,
             "outstanding_amount": (">", 0)
         },
-        fields=["name", "customer", "due_date", "posting_date", "outstanding_amount"]
+        fields=["name", "customer", "posting_date", "due_date", "outstanding_amount"]
     )
 
-    customer_overdue = {}
+    customer_data = {}
 
-    for inv_summary in invoices:
-        inv = frappe.get_doc("Sales Invoice", inv_summary.name)
+    for inv in invoices:
 
-        customer = frappe.get_doc("Customer", inv.customer)
+        if not inv.due_date or today < getdate(inv.due_date):
+            continue
+
+        if inv.customer not in customer_data:
+            customer_data[inv.customer] = []
+
+        customer_data[inv.customer].append(inv)
+
+    for customer_name, inv_list in customer_data.items():
+
+        customer = frappe.get_doc("Customer", customer_name)
+
         if not customer.custom_reminder_emails:
             continue
 
@@ -66,40 +76,55 @@ def daily_credit_check():
             if e.strip()
         ]
 
-        invoice_date = inv.posting_date or "N/A"
-        outstanding = inv.outstanding_amount or 0.0
+        table_rows = ""
+        total_outstanding = 0
 
-        if today >= getdate(inv.due_date):
-            frappe.sendmail(
-                recipients=recipients,
-                subject=f"Payment Reminder - Invoice {inv.name}",
-                message=f"""
-                <p>Dear Sir/Madam,</p>
+        for inv in inv_list:
+            total_outstanding += inv.outstanding_amount or 0
 
-                <p>This is a gentle reminder for the payment of the invoice mentioned below:</p>
+            table_rows += f"""
+                <tr>
+                    <td>{inv.name}</td>
+                    <td>{customer.customer_name}</td>
+                    <td>{frappe.utils.formatdate(inv.posting_date)}</td>
+                    <td style="text-align:right;">₹{inv.outstanding_amount:,.2f}</td>
+                </tr>
+            """
 
-                <p>
-                    <b>Customer Name:</b> {customer.customer_name}<br>
-                    <b>Invoice No.:</b> {inv.name}<br>
-                    <b>Outstanding Amount:</b> ₹{outstanding}<br>
-                    <b>Due Date:</b> {frappe.utils.formatdate(inv.due_date)}
-                </p>
+        message = f"""
+        <p>Dear Team,</p>
 
-                <p>
-                    We request you to kindly arrange the payment at your convenience.<br>
-                    If already paid, please ignore this message.
-                </p>
+        <p>Please find below the outstanding invoices that are more than 30 days old.</p>
 
-                <p>Thank you for your support.</p>
-                """
-            )
+        <h3>Outstanding Invoices (More Than 30 Days)</h3>
 
-        # mark overdue
-        if today >= getdate(inv.due_date):
-            customer_overdue[customer.name] = 1
+        <table border="1" cellpadding="6" cellspacing="0" width="100%" style="border-collapse:collapse;">
+            <tr style="background-color:#f2f2f2;">
+                <th>Invoice No</th>
+                <th>Customer</th>
+                <th>Invoice Date</th>
+                <th>Outstanding Amount</th>
+            </tr>
+            {table_rows}
+        </table>
 
-    # disable customers having overdue invoices
-    for cust in customer_overdue:
-        frappe.db.set_value("Customer", cust, "disabled", 1)
+        <br>
+        <p><b>Total Outstanding Amount: ₹{total_outstanding:,.2f}</b></p>
+
+        <p>
+        Kindly arrange the payment at the earliest.<br>
+        If already paid, please ignore this email.
+        </p>
+
+        <p>Thank you.</p>
+        """
+
+        frappe.sendmail(
+            recipients=recipients,
+            subject="Outstanding More Than 30 Days",
+            message=message
+        )
+
+        frappe.db.set_value("Customer", customer_name, "disabled", 1)
 
     frappe.db.commit()
