@@ -5,6 +5,13 @@ from frappe.utils.background_jobs import enqueue
 
 
 def validate(doc, method):
+    # Credit Hold Check
+	if doc.customer:
+		customer = frappe.get_doc("Customer", doc.customer)
+
+		if customer.custom_credit_hold:
+			frappe.throw("Customer is on Credit Hold due to overdue invoices.")
+
 	# so_name = [row.sales_order for row in doc.items if row.sales_order]
 	so_name = frappe.db.get_value("Sales Invoice Item",{'parent':doc.name},'sales_order')
 	if so_name:

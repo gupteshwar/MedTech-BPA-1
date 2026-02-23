@@ -63,9 +63,17 @@ def daily_credit_check():
 
         customer_data[inv.customer].append(inv)
 
+    # APPLY CREDIT HOLD
     for customer_name, inv_list in customer_data.items():
 
         customer = frappe.get_doc("Customer", customer_name)
+
+        frappe.db.set_value(
+            "Customer",
+            customer_name,
+            "custom_credit_hold",
+            1
+        )
 
         if not customer.custom_reminder_emails:
             continue
@@ -94,9 +102,7 @@ def daily_credit_check():
         message = f"""
         <p>Dear Team,</p>
 
-        <p>Please find below the outstanding invoices that are more than 30 days old.</p>
-
-        <h3>Outstanding Invoices (More Than 30 Days)</h3>
+        <p>Please find below the overdue outstanding invoices.</p>
 
         <table border="1" cellpadding="6" cellspacing="0" width="100%" style="border-collapse:collapse;">
             <tr style="background-color:#f2f2f2;">
@@ -111,20 +117,41 @@ def daily_credit_check():
         <br>
         <p><b>Total Outstanding Amount: ₹{total_outstanding:,.2f}</b></p>
 
-        <p>
-        Kindly arrange the payment at the earliest.<br>
-        If already paid, please ignore this email.
-        </p>
-
-        <p>Thank you.</p>
+        <p>Kindly arrange the payment at the earliest.<br>
+         If already paid, please ignore this email.</p>
         """
 
         frappe.sendmail(
             recipients=recipients,
-            subject="Outstanding More Than 30 Days",
+            subject="Overdue Outstanding Reminder",
             message=message
         )
 
-        frappe.db.set_value("Customer", customer_name, "disabled", 1)
+    # REMOVE CREDIT HOLD IF CLEARED
+    customers_on_hold = frappe.get_all(
+        "Customer",
+        filters={"custom_credit_hold": 1},
+        fields=["name"]
+    )
+
+    for cust in customers_on_hold:
+
+        overdue_exists = frappe.db.exists(
+            "Sales Invoice",
+            {
+                "customer": cust.name,
+                "docstatus": 1,
+                "outstanding_amount": (">", 0),
+                "due_date": ("<", today)
+            }
+        )
+
+        if not overdue_exists:
+            frappe.db.set_value(
+                "Customer",
+                cust.name,
+                "custom_credit_hold",
+                0
+            )
 
     frappe.db.commit()
