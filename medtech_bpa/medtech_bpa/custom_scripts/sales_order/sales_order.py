@@ -77,6 +77,14 @@ def on_update_after_submit(doc,method):
 
 
 def validate(doc, method):
+    # CREDIT HOLD CHECK
+    if doc.customer:
+        customer = frappe.get_doc("Customer", doc.customer)
+
+        if customer.custom_credit_hold:
+            frappe.throw(
+                f"Customer {customer.customer_name} is on Credit Hold. Sales Order cannot be created.")
+
     pricing_rule = frappe.db.get_values("Pricing Rule", {"customer":doc.customer, "is_cummulative_customer":1}, ["max_amt", "valid_from", "valid_upto", "discount_percentage"],as_dict=1)
 
     if pricing_rule:
