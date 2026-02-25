@@ -67,6 +67,10 @@ def daily_credit_check():
     for customer_name, inv_list in customer_data.items():
 
         customer = frappe.get_doc("Customer", customer_name)
+        
+        # CHECK FIRST: Email field must have value
+        if not customer.custom_reminder_emails:
+            continue
 
         frappe.db.set_value(
             "Customer",
