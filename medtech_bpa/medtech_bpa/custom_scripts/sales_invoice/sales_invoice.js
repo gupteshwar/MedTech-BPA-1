@@ -1,5 +1,47 @@
 frappe.ui.form.on('Sales Invoice', {
+     validate: function(frm) {
+        update_cc_emails(frm);   // save ke time force update
+    },
+    customer: function(frm) {
+        update_cc_emails(frm);
+        console.log("Customer Triggered");
+        console.log("Selected Customer:", frm.doc.customer);
+
+        if (!frm.doc.customer) {
+            console.log("No customer selected");
+            frm.set_value("custom_customer_email_id", "");
+            return;
+        }
+
+        frappe.db.get_value('Customer', frm.doc.customer, 'email_id')
+            .then(r => {
+
+                console.log("Response from Customer:", r);
+
+                if (r.message && r.message.email_id) {
+                    console.log("Email Found:", r.message.email_id);
+                    frm.set_value('custom_customer_email_id', r.message.email_id);
+                } else {
+                    console.log("Email NOT found in Customer");
+                    frm.set_value('custom_customer_email_id', '');
+                }
+
+            }).catch(err => {
+                console.log("Error while fetching email:", err);
+            });
+            // Update CC emails only if draft
+            if (frm.doc.docstatus === 0) {
+                update_cc_emails(frm);
+            }
+    },
+    before_save: function(frm) {
+        // Only update CC emails for draft
+        if (frm.doc.docstatus === 0) {
+            update_cc_emails(frm);
+        }
+    },
     refresh(frm) {
+        // update_cc_emails(frm);
         frm.doc.items.forEach(i=>{
             if (i.fully_discount == 1 && i.sales_order != null && frm.doc.__islocal){
                 i.price_list_rate = i.fully_discount_rate;
@@ -467,12 +509,42 @@ frappe.ui.form.on('Sales Invoice', {
         frm.refresh_field("items")
     }
     
-})     
-             
+});
+// Trigger whenever a Sales Person is changed or added/removed
+function update_cc_emails(frm) {
 
+    if (!frm.doc.sales_team || frm.doc.sales_team.length === 0) {
+        frm.set_value("custom_cc_email_ids", "");
+        return;
+    }
 
-     
+    let email_list = [];
+    let promises = [];
 
-        
+    frm.doc.sales_team.forEach(row => {
+        if (row.sales_person) {
+            let p = frappe.db.get_value(
+                "Sales Person",
+                row.sales_person,
+                "contact_company_email"
+            ).then(r => {
+                if (r.message && r.message.contact_company_email) {
+                    email_list.push(r.message.contact_company_email.trim());
+                }
+            });
 
-    
+            promises.push(p);
+        }
+    });
+
+    Promise.all(promises).then(() => {
+
+        email_list = [...new Set(email_list)];
+        let new_value = email_list.join(", ");
+        let current_value = (frm.doc.custom_cc_email_ids || "").trim();
+
+        if (current_value !== new_value) {
+            frm.set_value("custom_cc_email_ids", new_value);
+        }
+    });
+}
