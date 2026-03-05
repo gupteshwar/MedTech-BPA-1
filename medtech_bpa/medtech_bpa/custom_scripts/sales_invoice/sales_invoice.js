@@ -4,30 +4,20 @@ frappe.ui.form.on('Sales Invoice', {
     },
     customer: function(frm) {
         update_cc_emails(frm);
-        console.log("Customer Triggered");
-        console.log("Selected Customer:", frm.doc.customer);
-
         if (!frm.doc.customer) {
-            console.log("No customer selected");
             frm.set_value("custom_customer_email_id", "");
             return;
         }
 
         frappe.db.get_value('Customer', frm.doc.customer, 'email_id')
             .then(r => {
-
-                console.log("Response from Customer:", r);
-
                 if (r.message && r.message.email_id) {
-                    console.log("Email Found:", r.message.email_id);
                     frm.set_value('custom_customer_email_id', r.message.email_id);
                 } else {
-                    console.log("Email NOT found in Customer");
                     frm.set_value('custom_customer_email_id', '');
                 }
 
             }).catch(err => {
-                console.log("Error while fetching email:", err);
             });
             if (frm.doc.docstatus === 0) {
                 update_cc_emails(frm);
