@@ -1,6 +1,6 @@
 frappe.ui.form.on('Sales Invoice', {
      validate: function(frm) {
-        update_cc_emails(frm);   // save ke time force update
+        update_cc_emails(frm);
     },
     customer: function(frm) {
         update_cc_emails(frm);
@@ -29,19 +29,16 @@ frappe.ui.form.on('Sales Invoice', {
             }).catch(err => {
                 console.log("Error while fetching email:", err);
             });
-            // Update CC emails only if draft
             if (frm.doc.docstatus === 0) {
                 update_cc_emails(frm);
             }
     },
     before_save: function(frm) {
-        // Only update CC emails for draft
         if (frm.doc.docstatus === 0) {
             update_cc_emails(frm);
         }
     },
     refresh(frm) {
-        // update_cc_emails(frm);
         frm.doc.items.forEach(i=>{
             if (i.fully_discount == 1 && i.sales_order != null && frm.doc.__islocal){
                 i.price_list_rate = i.fully_discount_rate;
@@ -510,7 +507,6 @@ frappe.ui.form.on('Sales Invoice', {
     }
     
 });
-// Trigger whenever a Sales Person is changed or added/removed
 function update_cc_emails(frm) {
 
     if (!frm.doc.sales_team || frm.doc.sales_team.length === 0) {
