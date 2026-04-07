@@ -78,3 +78,4 @@ def before_save(doc,method):
 		if row.fully_discount == 1 and row.fully_discount_rate == 0:
 			frappe.throw(frappe._("Fully discount rate field is mandatory at row {0}.").format(row.idx))
 
+
