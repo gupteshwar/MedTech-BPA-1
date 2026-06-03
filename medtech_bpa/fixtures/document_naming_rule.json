@@ -2900,7 +2900,7 @@
    },
    {
     "condition": "=",
-    "field": "branch_list",
+    "field": "branch",
     "parent": "3a6aad038d",
     "parentfield": "conditions",
     "parenttype": "Document Naming Rule",
@@ -2930,7 +2930,7 @@
    },
    {
     "condition": "=",
-    "field": "branch_list",
+    "field": "branch",
     "parent": "2ec0dc6f3c",
     "parentfield": "conditions",
     "parenttype": "Document Naming Rule",
