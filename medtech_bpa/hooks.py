@@ -147,7 +147,7 @@ scheduler_events = {
 
 fixtures = ['Custom Field', 'Property Setter', 'Print Format', 'Role', 
 	'Letter Head', 'Print Style', 'Print Settings',
- 	'Workflow', 'Workflow State', 'Workflow Action Master',"Client Script","Translation", "Document Naming Rule"]
+ 	'Workflow', 'Workflow State', 'Workflow Action Master',"Client Script","Translation"]
 
 doctype_js = {
 	"Purchase Receipt" : "medtech_bpa/custom_scripts/purchase_receipt/purchase_receipt.js",
