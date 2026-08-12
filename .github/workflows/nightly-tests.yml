@@ -1,0 +1,29 @@
+name: Nightly Branch Tests
+
+# GitHub's `schedule` trigger always fires against the default branch's copy of this
+# file and can't itself target other branches, so each branch we want covered gets its
+# own job below with an explicit `ref:` passed through to _base-server-tests.yml. This
+# is what catches "two independently-green PRs conflict once merged together" - a gap
+# we'd otherwise only close with a push trigger on every commit (redundant CI cost) or
+# branch protection's "require branches up to date" (unavailable on this plan/repo).
+#
+# Covers only master - it's the only actively worked branch (commits as recent as
+# 2026-07-23). UAT is a stale subset of master (0 commits of its own beyond it), and the
+# remaining branches (UAT-Master, apidev_v1, 29052023sinan,
+# Jan_8_18-18PM_2026_master_before-merging-UAT-Master, revert-*) are all significantly
+# stale or diverged, none touched more recently than 2026-06-03.
+
+on:
+  schedule:
+    - cron: '30 1 * * *'   # 01:30 UTC = 07:00 IST daily
+  workflow_dispatch:        # manual trigger, e.g. to check right after a merge
+
+jobs:
+  master:
+    uses: ./.github/workflows/_base-server-tests.yml
+    with:
+      ref: master
+      python-version: '3.10'
+      node-version: 18
+      frappe-branch: 'version-15'
+      app-name: 'medtech_bpa'

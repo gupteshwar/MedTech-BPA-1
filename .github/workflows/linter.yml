@@ -1,0 +1,95 @@
+
+name: Linters
+
+on:
+  # PR-only: everything here routes through PRs anyway, so a push trigger just re-lints
+  # the same commits a second time. workflow_dispatch kept for manual runs.
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  linter:
+    name: 'Frappe Linter'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      # No pre-commit/action step here: this repo has no .pre-commit-config.yaml, and
+      # that action fails outright without one. Add it back if/when one gets added.
+
+      - name: Download Semgrep rules
+        run: git clone --depth 1 https://github.com/frappe/semgrep-rules.git frappe-semgrep-rules
+
+      - name: Run Semgrep rules
+        run: |
+          pip install semgrep
+          semgrep ci --config ./frappe-semgrep-rules/rules --config r/python.lang.correctness
+
+  deps-vulnerable-check:
+    name: 'Vulnerable Dependency Check'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - uses: actions/checkout@v4
+
+      - name: Cache pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/*requirements.txt', '**/pyproject.toml', '**/setup.py') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+            ${{ runner.os }}-
+
+      - name: Install and run pip-audit
+        run: |
+          pip install pip-audit
+          cd ${GITHUB_WORKSPACE}
+          pip-audit --desc on .
+
+  secret-scan:
+    name: 'Secret Scan'
+    runs-on: ubuntu-latest
+    # Using the raw gitleaks CLI directly rather than the official gitleaks/gitleaks-action
+    # wrapper - that wrapper requires a paid license for organization-owned repos (even
+    # private ones), same paywall pattern as GitHub's own Advanced Security. The gitleaks
+    # CLI itself is fully open-source (MIT) and free to run this way.
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install gitleaks
+        env:
+          # Pinned literally here rather than fetched alongside the archive: downloading
+          # the checksum from the same GitHub release as the binary shares a single trust
+          # boundary - a compromised release compromises both together, so that "check"
+          # would verify nothing against exactly the threat it's meant to catch. This
+          # value must be updated by hand (from the release's own checksums.txt) whenever
+          # the pinned version below is bumped.
+          GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+        run: |
+          curl -sSLO https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+          echo "${GITLEAKS_SHA256}  gitleaks_8.30.1_linux_x64.tar.gz" | sha256sum -c -
+          tar -xzf gitleaks_8.30.1_linux_x64.tar.gz gitleaks
+          sudo mv gitleaks /usr/local/bin/gitleaks
+
+      - name: Run gitleaks
+        # Scans the checked-out working tree at this commit, not full git history - a
+        # secret already buried in old history needs separate, deliberate remediation
+        # (history rewrite), not something a per-PR lint should flag repeatedly as noise.
+        run: gitleaks detect --no-git --source . --redact -v
