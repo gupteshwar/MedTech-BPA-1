@@ -1,0 +1,30 @@
+name: Server Tests
+
+on:
+  # PR-only, deliberately no push trigger: everything here routes through PRs anyway, so
+  # a push trigger just re-runs the same commits a second time. On a plain push there's
+  # no PR to comment on, so the coverage action falls back to creating a *commit* comment,
+  # which needs a permission (contents: write) this job doesn't grant, and that fails the
+  # whole check outright on every push to a shared branch.
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    uses: ./.github/workflows/_base-server-tests.yml
+    with:
+      python-version: '3.10'
+      node-version: 18
+      frappe-branch: 'version-15'
+      # medtech_bpa's own code only imports erpnext (13 files) - no hrms/payments/
+      # india_compliance usage found, and hooks.py has no required_apps line at all.
+      #
+      # This repo has 16 doctype test stub files but none contain an actual test
+      # method (all just `pass`), so the "Find tests" step in _base-server-tests.yml
+      # will fail every run until a real test exists - left as a visible gate rather
+      # than a fake-success no-op, so the gap stays visible instead of quietly masked.
+      app-name: 'medtech_bpa'
+      diff-coverage-fail-under: 80

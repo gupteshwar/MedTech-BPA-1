@@ -1,0 +1,318 @@
+name: Base Server Tests
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        type: string
+        default: '3.10'
+      node-version:
+        type: number
+        default: 18
+      frappe-branch:
+        type: string
+        required: true
+      app-name:
+        type: string
+        required: true
+      fake-success:
+        type: boolean
+        default: false
+      diff-coverage-fail-under:
+        type: number
+        default: 80
+      ref:
+        type: string
+        default: ''
+        description: "Branch/ref to check out. Empty = the ref that triggered this run (normal PR behavior). Set explicitly for scheduled/manual runs against a specific branch (see nightly-tests.yml)."
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30   # cap a hung run instead of letting it burn CI minutes for hours
+    strategy:
+      fail-fast: false
+    name: Server
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write   # required by the Test Report step to publish a check run
+
+    services:
+      redis-cache:
+        image: redis:alpine
+        ports:
+          - 13000:6379
+      redis-queue:
+        image: redis:alpine
+        ports:
+          - 11000:6379
+      mariadb:
+        image: mariadb:10.6
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: --health-cmd="mariadb-admin ping -h 127.0.0.1 -u root -proot" --health-interval=5s --health-timeout=2s --health-retries=3
+
+    steps:
+      - name: Clone
+        uses: actions/checkout@v4
+        with:
+          # fetch-depth: 0 pulls full history (not just the PR head) - required so the
+          # base branch's commit is available locally for the diff-coverage step below.
+          fetch-depth: 0
+          # Empty inputs.ref falls back to github.ref - i.e. unchanged behavior for a
+          # normal PR/push trigger. A caller (e.g. nightly-tests.yml) can pass an
+          # explicit branch to check out regardless of what triggered this run.
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Find tests
+        run: |
+          echo "Finding tests"
+          grep -rn "def test" > /dev/null
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          check-latest: true
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/*requirements.txt', '**/pyproject.toml', '**/setup.py', '**/setup.cfg') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+            ${{ runner.os }}-
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: |
+          npm install -g yarn
+          echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
+
+      - uses: actions/cache@v4
+        id: yarn-cache
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install MariaDB Client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mariadb-client || sudo apt-get install -y default-mysql-client
+
+      - name: Setup
+        run: |
+          pip install frappe-bench
+          bench init --skip-redis-config-generation --skip-assets --frappe-branch "${{ inputs.frappe-branch }}" --python "$(which python)" ~/frappe-bench
+          mariadb --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL character_set_server = 'utf8mb4'"
+          mariadb --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'"
+        env:
+          CI: 'Yes'
+
+      - name: Prepare base branch ref for diff coverage
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          # `bench get-app <app> $GITHUB_WORKSPACE` (below) does a shallow (depth-1) clone
+          # of this checkout into the bench's apps/ folder - it only carries over the single
+          # ref being checked out, not other branches. Create a local branch here anyway so
+          # the base commit has a stable name to fetch by after the clone (see the
+          # "Fetch base branch into app copy" step, after Install).
+          git branch ci-diff-base ${{ github.event.pull_request.base.sha }}
+
+      - name: Compute cache week
+        id: week
+        run: echo "week=$(date +%Y-%V)" >> $GITHUB_OUTPUT
+
+      - name: Restore bench dependency apps cache
+        # erpnext is pinned to a fixed frappe-branch and barely changes day-to-day, but
+        # get-app clones it fresh on every run - it's a large repo, and this is a
+        # meaningful chunk of Install's runtime. bench get-app no-ops if the app
+        # directory already exists, so restoring this cache first lets it skip straight
+        # to registering the app instead of re-cloning. Keyed with an ISO year-week, and
+        # deliberately with NO restore-keys fallback: a fallback would restore last
+        # week's (stale) clone under the new key, and since get-app no-ops on an
+        # existing directory it would never notice the content is old - the cache would
+        # carry forward forever and never actually refresh. Without a fallback, a new
+        # week is a genuine miss: one real fresh clone that run, then cached for the
+        # rest of the week.
+        #
+        # Only erpnext is cached here (not payments/hrms/india_compliance) -
+        # medtech_bpa's own code only imports erpnext, and erpnext itself declares no
+        # required_apps in its hooks.py, so the other three aren't genuine dependencies
+        # here.
+        #
+        # Split into explicit restore/save steps (actions/cache/restore + .../save)
+        # rather than the combined actions/cache action: the combined action's automatic
+        # post-hook save is hardcoded with `post-if: success()` at the action level, so
+        # its own `save-always` input can never actually override that - it's a
+        # documented no-op, not just "off by default". Explicit restore now, explicit
+        # save (with a real if: always()) after Install below, is the only way this
+        # genuinely survives a later Run Tests/Diff Coverage failure.
+        id: bench-apps-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            /home/runner/frappe-bench/apps/erpnext
+          key: ${{ runner.os }}-bench-apps-${{ inputs.frappe-branch }}-${{ steps.week.outputs.week }}
+
+      - name: Install
+        id: install
+        working-directory: /home/runner/frappe-bench
+        run: |
+          # bench get-app on an already-existing directory (restored from cache) prompts
+          # interactively twice: "overwrite it?" then "reinstall the existing app?" - and
+          # skipping the call entirely (an earlier version of this step) avoided the hang,
+          # but also skipped everything install_app() does for that app: uv pip install -e
+          # (registering it as an importable package), bench's own apps.sync(), and asset
+          # building. That's not optional - later steps import erpnext by name and fail
+          # with ModuleNotFoundError without it. Answering "n" (keep the cached clone, skip
+          # re-cloning) then "y" (do reinstall) to bench's own two prompts gets both: no
+          # network re-fetch, but bench's real install_app() still runs and does its job
+          # correctly - reusing bench's tested logic instead of reimplementing it here.
+          #
+          # --skip-assets on every call here: defers all asset building to the single
+          # `bench build` at the end of this step (after every app is actually
+          # installed), rather than each get-app call triggering its own build.
+          get_or_reinstall_app() {
+            local name_or_url="$1" dir="$2"
+            if [ -d "apps/$dir" ]; then
+              printf 'n\ny\n' | bench get-app "$name_or_url" --branch "${{ inputs.frappe-branch }}" --skip-assets
+            else
+              bench get-app "$name_or_url" --branch "${{ inputs.frappe-branch }}" --skip-assets
+            fi
+          }
+          get_or_reinstall_app erpnext erpnext
+
+          bench get-app ${{ inputs.app-name }} $GITHUB_WORKSPACE --skip-assets
+          bench setup requirements --dev
+          bench new-site --db-root-password root --admin-password admin test_site
+          bench --site test_site install-app erpnext
+          bench --site test_site install-app ${{ inputs.app-name }}
+          bench build
+        env:
+          CI: 'Yes'
+
+      - name: Save bench dependency apps cache
+        # Deliberately NOT plain always(): if Install itself fails partway (e.g. a git
+        # clone gets interrupted after creating its destination directory), always()
+        # would still cache that broken, incomplete directory - and the existence-only
+        # check in Install (above) would then treat that broken directory as valid on
+        # every future run, poisoning the cache until the weekly key rotates. Gating on
+        # `steps.install.outcome == 'success'` specifically (Install has `id: install`)
+        # means: skip the save if Install itself failed, but still save if Install
+        # succeeded and something *later* (Run Tests, Diff Coverage) failed -
+        # `!cancelled()` is what lets this step still evaluate at all after a later
+        # step's failure, since a plain default `if` would otherwise skip it outright
+        # the same way that later step skipped everything after itself.
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.bench-apps-cache.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            /home/runner/frappe-bench/apps/erpnext
+          key: ${{ runner.os }}-bench-apps-${{ inputs.frappe-branch }}-${{ steps.week.outputs.week }}
+
+      - name: Fetch base branch into app copy
+        # `bench get-app`'s shallow clone (above) didn't carry the ci-diff-base branch
+        # over, so fetch it directly from this checkout - which has full history thanks
+        # to fetch-depth: 0 on the Clone step - straight into the app's own clone.
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          git -C /home/runner/frappe-bench/apps/${{ inputs.app-name }} \
+            fetch $GITHUB_WORKSPACE ci-diff-base:refs/remotes/origin/ci-diff-base
+
+      - name: Run Tests
+        if: ${{ !inputs.fake-success }}
+        working-directory: /home/runner/frappe-bench
+        run: |
+          bench --site test_site set-config allow_tests true
+          bench --site test_site run-tests --app ${{ inputs.app-name }} --skip-test-records --coverage \
+            --junit-xml-output /home/runner/frappe-bench/sites/junit.xml
+        env:
+          TYPE: server
+
+      - name: Test Report
+        # Coverage (below) is skipped entirely when Run Tests fails, since a coverage
+        # number means nothing once tests are already broken. This step is the opposite:
+        # its whole point is showing *which* tests passed/failed as a separate check, so
+        # it must run whether Run Tests succeeded or not - hence !cancelled() instead of
+        # the default (which would skip it after any prior failure).
+        if: ${{ !inputs.fake-success && !cancelled() }}
+        continue-on-error: true
+        uses: mikepenz/action-junit-report@d9f48fc87bc235f7e214acf696ca5abc0a986f16 # v6.4.2
+        with:
+          report_paths: /home/runner/frappe-bench/sites/junit.xml
+          check_name: "Test Results — ${{ inputs.app-name }}"
+          require_tests: true
+          fail_on_failure: true
+          detailed_summary: true
+
+      - name: Coverage Report
+        # On a pull_request event this posts a PR comment (needs pull-requests: write,
+        # already granted above). On a plain push (no PR to comment on) the action falls
+        # back to creating a *commit* comment instead, which needs contents: write - a
+        # permission we deliberately don't grant, so that call fails outright rather than
+        # silently doing something we didn't intend. There's no real need for a coverage
+        # comment on every push to dev/uat/master anyway, so just skip this step there.
+        # !cancelled() (rather than the implicit success()-only default) lets this still
+        # run even if Run Tests failed - coverage.xml is written regardless of whether
+        # individual tests passed, and the percentage is still meaningful either way.
+        if: ${{ !inputs.fake-success && github.event_name == 'pull_request' && !cancelled() }}
+        # Pinned to v1.11.0 (09c28b6767e12a048e0b23e821ed03133ee48a1a) rather than @main:
+        # this job has pull-requests: write, so an unpinned floating ref would let any
+        # future push to that repo's main branch run with write access to this repo's
+        # PRs and secrets. Bump the SHA deliberately when a new release is needed.
+        uses: MishaKav/pytest-coverage-comment@09c28b6767e12a048e0b23e821ed03133ee48a1a # v1.11.0
+        with:
+          # _base-server-tests.yml is called via workflow_call, so the action can't
+          # auto-detect the PR number the way it does on a direct pull_request trigger -
+          # it must be passed explicitly or the comment silently has nowhere to post.
+          issue-number: ${{ github.event.number }}
+          pytest-xml-coverage-path: /home/runner/frappe-bench/sites/coverage.xml
+          title: "Test Coverage — ${{ inputs.app-name }}"
+          badge-title: Coverage
+          hide-badge: false
+          hide-report: false
+          create-new-comment: false
+          hide-comment: false
+          report-only-changed-files: false
+
+      - name: Diff Coverage
+        # Repo-wide coverage (above) barely moves PR-to-PR once an app is already at a high
+        # baseline, so it doesn't actually show whether *this* PR's new/changed lines have
+        # tests. diff-cover reports coverage of only the lines this PR touches, and fails
+        # the step (red check) if that's below the configured threshold. Same !cancelled()
+        # reasoning as Coverage Report above - run even if Run Tests failed.
+        if: ${{ !inputs.fake-success && github.event_name == 'pull_request' && !cancelled() }}
+        working-directory: /home/runner/frappe-bench/apps/${{ inputs.app-name }}
+        run: |
+          # Pinned so identical commits produce identical diff-coverage results - an
+          # unpinned install could silently change behavior/output on a later run if
+          # a new diff-cover release changes CLI flags or report formatting.
+          pip install diff-cover==10.4.1
+          diff-cover /home/runner/frappe-bench/sites/coverage.xml \
+            --compare-branch=origin/ci-diff-base \
+            --format markdown:/home/runner/frappe-bench/sites/diff-cover-report.md \
+            --fail-under=${{ inputs.diff-coverage-fail-under }}
+
+      - name: Diff Coverage Comment
+        if: ${{ !inputs.fake-success && github.event_name == 'pull_request' && !cancelled() }}
+        # A fork PR only gets GitHub's default read-only token, so this comment step can
+        # fail on a permissions error even when the tests themselves passed. It's purely
+        # informational (the Diff Coverage step above already enforces the real gate), so
+        # don't let a failure here fail the whole job.
+        continue-on-error: true
+        uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
+        with:
+          header: diff-coverage-${{ inputs.app-name }}
+          path: /home/runner/frappe-bench/sites/diff-cover-report.md
