@@ -147,12 +147,16 @@ jobs:
         # week is a genuine miss: one real fresh clone that run, then cached for the
         # rest of the week.
         #
-        # erpnext + india_compliance are cached here (not payments/hrms) -
+        # erpnext + hrms + india_compliance are cached here (not payments) -
         # medtech_bpa's own code only imports erpnext, and erpnext itself declares no
-        # required_apps in its hooks.py. india_compliance is a structural dependency
-        # instead: a custom Item field (gst_hsn_code) has its Link options set to
-        # "GST HSN Code", a DocType owned by india_compliance - without that app
-        # installed, bench migrate fails validating the field with
+        # required_apps in its hooks.py. hrms and india_compliance are both
+        # structural dependencies instead: custom fields on Employee
+        # (employment_type, grade, default_shift) and Company (basic_component,
+        # hra_component, arrear_component) have Link options set to HRMS-owned
+        # DocTypes ("Employment Type", "Employee Grade", "Shift Type", "Salary
+        # Component"), and a custom Item field (gst_hsn_code) has its Link options
+        # set to "GST HSN Code", a DocType owned by india_compliance. Without those
+        # apps installed, bench migrate fails validating the fields with
         # WrongOptionsDoctypeLinkError.
         #
         # Split into explicit restore/save steps (actions/cache/restore + .../save)
@@ -167,6 +171,7 @@ jobs:
         with:
           path: |
             /home/runner/frappe-bench/apps/erpnext
+            /home/runner/frappe-bench/apps/hrms
             /home/runner/frappe-bench/apps/india_compliance
           key: ${{ runner.os }}-bench-apps-${{ inputs.frappe-branch }}-${{ steps.week.outputs.week }}
 
@@ -197,6 +202,7 @@ jobs:
             fi
           }
           get_or_reinstall_app erpnext erpnext
+          get_or_reinstall_app hrms hrms
 
           # india_compliance is a special case: its GitHub repo is named
           # "india-compliance" (hyphen) but its actual Frappe/Python app name is
@@ -221,6 +227,7 @@ jobs:
           bench setup requirements --dev
           bench new-site --db-root-password root --admin-password admin test_site
           bench --site test_site install-app erpnext
+          bench --site test_site install-app hrms
           bench --site test_site install-app india_compliance
           bench --site test_site install-app ${{ inputs.app-name }}
           bench build
@@ -244,6 +251,7 @@ jobs:
         with:
           path: |
             /home/runner/frappe-bench/apps/erpnext
+            /home/runner/frappe-bench/apps/hrms
             /home/runner/frappe-bench/apps/india_compliance
           key: ${{ runner.os }}-bench-apps-${{ inputs.frappe-branch }}-${{ steps.week.outputs.week }}
 
