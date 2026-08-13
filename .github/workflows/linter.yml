@@ -60,7 +60,13 @@ jobs:
         run: |
           pip install pip-audit
           cd ${GITHUB_WORKSPACE}
-          pip-audit --desc on .
+          # `pip-audit --desc on .` auto-detects a project file (pyproject.toml or
+          # setup.py) in the current directory, but this repo has no pyproject.toml
+          # at all - dependencies are declared in requirements.txt, an older
+          # packaging style - so it fails with "couldn't find a supported project
+          # file in .". Pointing it at requirements.txt directly sidesteps the
+          # auto-detection entirely.
+          pip-audit --desc on -r requirements.txt
 
   secret-scan:
     name: 'Secret Scan'
