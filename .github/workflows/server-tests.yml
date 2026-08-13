@@ -19,8 +19,12 @@ jobs:
       python-version: '3.10'
       node-version: 18
       frappe-branch: 'version-15'
-      # medtech_bpa's own code only imports erpnext (13 files) - no hrms/payments/
-      # india_compliance usage found, and hooks.py has no required_apps line at all.
+      # medtech_bpa's own code only imports erpnext (13 files) - no hrms/payments
+      # usage found, and hooks.py has no required_apps line at all. india_compliance
+      # is a structural dependency though: a custom Item field (gst_hsn_code) has
+      # its Link options set to "GST HSN Code", a DocType owned by india_compliance -
+      # without that app installed, bench migrate fails with
+      # WrongOptionsDoctypeLinkError.
       #
       # This repo has 16 doctype test stub files but none contain an actual test
       # method (all just `pass`), so the "Find tests" step in _base-server-tests.yml
