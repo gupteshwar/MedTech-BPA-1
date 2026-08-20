@@ -147,10 +147,17 @@ jobs:
         # week is a genuine miss: one real fresh clone that run, then cached for the
         # rest of the week.
         #
-        # Only erpnext is cached here (not payments/hrms/india_compliance) -
+        # erpnext + hrms + india_compliance are cached here (not payments) -
         # medtech_bpa's own code only imports erpnext, and erpnext itself declares no
-        # required_apps in its hooks.py, so the other three aren't genuine dependencies
-        # here.
+        # required_apps in its hooks.py. hrms and india_compliance are both
+        # structural dependencies instead: custom fields on Employee
+        # (employment_type, grade, default_shift) and Company (basic_component,
+        # hra_component, arrear_component) have Link options set to HRMS-owned
+        # DocTypes ("Employment Type", "Employee Grade", "Shift Type", "Salary
+        # Component"), and a custom Item field (gst_hsn_code) has its Link options
+        # set to "GST HSN Code", a DocType owned by india_compliance. Without those
+        # apps installed, bench migrate fails validating the fields with
+        # WrongOptionsDoctypeLinkError.
         #
         # Split into explicit restore/save steps (actions/cache/restore + .../save)
         # rather than the combined actions/cache action: the combined action's automatic
@@ -164,6 +171,8 @@ jobs:
         with:
           path: |
             /home/runner/frappe-bench/apps/erpnext
+            /home/runner/frappe-bench/apps/hrms
+            /home/runner/frappe-bench/apps/india_compliance
           key: ${{ runner.os }}-bench-apps-${{ inputs.frappe-branch }}-${{ steps.week.outputs.week }}
 
       - name: Install
@@ -193,11 +202,33 @@ jobs:
             fi
           }
           get_or_reinstall_app erpnext erpnext
+          get_or_reinstall_app hrms hrms
+
+          # india_compliance is a special case: its GitHub repo is named
+          # "india-compliance" (hyphen) but its actual Frappe/Python app name is
+          # "india_compliance" (underscore). bench get-app's own existing-directory
+          # check keys off the URL-derived repo name (hyphenated), so it never
+          # recognizes our underscore-named cached directory as already there - it
+          # always attempts a fresh clone into a hyphenated temp folder regardless,
+          # then crashes trying to rename that onto our already-existing (and
+          # non-empty) underscore-named cached directory. get_or_reinstall_app's
+          # "n then y" trick relies on bench's own check finding a match in the first
+          # place, which never happens here, so bypass get-app entirely on a cache hit
+          # for this one app and just run the pip registration step ourselves - the
+          # one piece of install_app() actually needed here, since --skip-assets
+          # already defers the rest to the final `bench build` below.
+          if [ -d apps/india_compliance ]; then
+            uv pip install --quiet -e apps/india_compliance --python env/bin/python
+          else
+            bench get-app https://github.com/resilient-tech/india-compliance.git --branch "${{ inputs.frappe-branch }}" --skip-assets
+          fi
 
           bench get-app ${{ inputs.app-name }} $GITHUB_WORKSPACE --skip-assets
           bench setup requirements --dev
           bench new-site --db-root-password root --admin-password admin test_site
           bench --site test_site install-app erpnext
+          bench --site test_site install-app hrms
+          bench --site test_site install-app india_compliance
           bench --site test_site install-app ${{ inputs.app-name }}
           bench build
         env:
@@ -220,6 +251,8 @@ jobs:
         with:
           path: |
             /home/runner/frappe-bench/apps/erpnext
+            /home/runner/frappe-bench/apps/hrms
+            /home/runner/frappe-bench/apps/india_compliance
           key: ${{ runner.os }}-bench-apps-${{ inputs.frappe-branch }}-${{ steps.week.outputs.week }}
 
       - name: Fetch base branch into app copy

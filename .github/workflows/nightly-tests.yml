@@ -14,8 +14,13 @@ name: Nightly Branch Tests
 # stale or diverged, none touched more recently than 2026-06-03.
 
 on:
-  schedule:
-    - cron: '30 1 * * *'   # 01:30 UTC = 07:00 IST daily
+  # Scheduled nightly runs are paused for now to control GitHub Actions minutes usage
+  # (both indictranstech and gupteshwar are on the GitHub Free plan's 2,000 min/month
+  # pool, shared across all private repos on that account). The jobs below still
+  # exist and can be run manually via workflow_dispatch - uncomment the schedule:
+  # trigger below to resume automatic nightly runs.
+  # schedule:
+  #   - cron: '30 1 * * *'   # 01:30 UTC = 07:00 IST daily
   workflow_dispatch:        # manual trigger, e.g. to check right after a merge
 
 jobs:
