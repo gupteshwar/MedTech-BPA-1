@@ -1,0 +1,142 @@
+name: Create Release PR
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Creates a promotion PR between branches with an auto-generated changelog.
+#
+# Usage:
+#   develop → uat  : after a batch of features is ready for client signoff
+#   uat     → main : after UAT signoff, before running "Create Release"
+#
+# Flow:
+#   1. Validate semver version input
+#   2. Check commits exist between head and base
+#   3. Extract merged PR titles from git log  →  PR body changelog
+#   4. Guard against duplicate PRs
+#   5. Create PR with structured title + checklist body
+#
+# What this does NOT do (intentionally):
+#   - Does not bump __version__  (that's the job of "Create Release")
+#   - Does not create a git tag  (same reason)
+#   - Does not write change_log files (same reason)
+# ─────────────────────────────────────────────────────────────────────────────
+
+on:
+  workflow_dispatch:
+    inputs:
+      base:
+        description: "Target branch — where code is going (uat or main)"
+        required: true
+        default: "uat"
+        type: string
+      head:
+        description: "Source branch — where code is coming from (develop or uat)"
+        required: true
+        default: "develop"
+        type: string
+      version:
+        description: "Release version — no v prefix (e.g. 1.4.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  create-pr:
+    name: Create PR ${{ inputs.head }} → ${{ inputs.base }}
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      # ── 0. Validate semver ───────────────────────────────────────────────────
+      - name: Validate version format
+        run: |
+          if ! echo "${{ inputs.version }}" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "ERROR: '${{ inputs.version }}' is not valid semver. Expected format: 1.4.0 (no v prefix)"
+            exit 1
+          fi
+
+      # ── 1. Checkout with full history ────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # ── 2. Check commits exist to promote ────────────────────────────────────
+      - name: Check commits exist to promote
+        id: diff_check
+        run: |
+          COUNT=$(git rev-list --count origin/${{ inputs.base }}..origin/${{ inputs.head }})
+          echo "commit_count=$COUNT" >> $GITHUB_OUTPUT
+          if [ "$COUNT" -eq 0 ]; then
+            echo "⚠️ No commits to promote from ${{ inputs.head }} → ${{ inputs.base }}"
+          else
+            echo "✅ $COUNT commit(s) to promote"
+          fi
+
+      # ── 3. Generate changelog from merged PRs ────────────────────────────────
+      - name: Generate changelog
+        if: steps.diff_check.outputs.commit_count > 0
+        id: changelog
+        run: |
+          LOG=$(git log origin/${{ inputs.base }}..origin/${{ inputs.head }} \
+            --merges \
+            --pretty=format:"- %s")
+
+          if [ -z "$LOG" ]; then
+            LOG="- (no merge commits found — direct commits only)"
+          fi
+
+          echo "log<<EOF" >> $GITHUB_OUTPUT
+          echo "$LOG"     >> $GITHUB_OUTPUT
+          echo "EOF"      >> $GITHUB_OUTPUT
+
+      # ── 4. Check for existing PR ─────────────────────────────────────────────
+      - name: Check for existing PR
+        if: steps.diff_check.outputs.commit_count > 0
+        id: existing_pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          EXISTING=$(gh pr list \
+            --base ${{ inputs.base }} \
+            --head ${{ inputs.head }} \
+            --json number \
+            --jq '.[0].number // ""')
+          echo "pr_number=$EXISTING" >> $GITHUB_OUTPUT
+
+      # ── 5. Create PR ─────────────────────────────────────────────────────────
+      - name: Create PR
+        if: >
+          steps.diff_check.outputs.commit_count > 0 &&
+          steps.existing_pr.outputs.pr_number == ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --base "${{ inputs.base }}" \
+            --head "${{ inputs.head }}" \
+            --title "chore(release): v${{ inputs.version }} → ${{ inputs.base }}" \
+            --body "## Changes in this release
+
+          ${{ steps.changelog.outputs.log }}
+
+          ## Pre-merge Checklist
+          - [ ] All feature PRs in this batch are reviewed and merged
+          - [ ] No WIP or incomplete commits included
+          - [ ] Migrations reviewed (if any)
+          - [ ] FCs notified for UAT scope (if promoting to \`uat\`)
+          - [ ] UAT sign-off received (if promoting to \`main\`)"
+
+      # ── 6. Skip paths ────────────────────────────────────────────────────────
+      - name: Skip — PR already exists
+        if: steps.existing_pr.outputs.pr_number != ''
+        run: |
+          echo "PR #${{ steps.existing_pr.outputs.pr_number }} already exists for ${{ inputs.head }} → ${{ inputs.base }}. Nothing to do."
+
+      - name: Skip — Nothing to promote
+        if: steps.diff_check.outputs.commit_count == 0
+        run: |
+          echo "No commits found between ${{ inputs.base }} and ${{ inputs.head }}. Nothing to promote."
