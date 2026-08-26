@@ -1,0 +1,249 @@
+name: Create Release
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Uses GitHub's built-in generate-notes API — no Python, no AI, no secrets
+# needed beyond the default GITHUB_TOKEN.
+#
+# GitHub auto-collects all merged PRs since the last tag, formats them as
+# bullet points, and we strip out noise lines (chore, ci, test, etc.).
+#
+# Correct commit order — tag lands on the right commit:
+#
+#   1. Get previous tag
+#   2. Call GitHub generate-notes API  →  filter noise  →  _release_notes.md
+#   3. Bump __version__ in {app}/__init__.py
+#   4. Write {app}/change_log/v{major}/v{major}_{minor}_{patch}.md
+#   5. Commit both files  →  push to branch        ← tag will point HERE
+#   6. Create annotated Git tag on that commit
+#   7. Create DRAFT GitHub Release with the notes
+#      └─ Human reviews/edits → publishes
+# ─────────────────────────────────────────────────────────────────────────────
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release — semver, no v prefix (e.g. 1.2.0)'
+        required: true
+        type: string
+      branch:
+        description: 'Branch to release from (e.g. main, version-15)'
+        required: true
+        default: 'main'
+        type: string
+      draft:
+        description: 'Create as Draft (recommended — lets you review before publishing)'
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create Release v${{ inputs.version }}
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── 0. Validate semver ───────────────────────────────────────────────────
+      - name: Validate version format
+        run: |
+          if ! echo "${{ inputs.version }}" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "ERROR: '${{ inputs.version }}' is not valid semver. Expected format: 1.2.0"
+            exit 1
+          fi
+
+      # ── 1. Checkout branch with full history ─────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
+
+      # ── 2. Check tag doesn't already exist ──────────────────────────────────
+      - name: Check tag is free
+        run: |
+          if git rev-parse "v${{ inputs.version }}" >/dev/null 2>&1; then
+            echo "ERROR: Tag v${{ inputs.version }} already exists."
+            exit 1
+          fi
+
+      # ── 3. Parse version parts ───────────────────────────────────────────────
+      - name: Parse version
+        id: ver
+        run: |
+          VER="${{ inputs.version }}"
+          echo "tag=v${VER}"                        >> $GITHUB_OUTPUT
+          echo "ver=${VER}"                         >> $GITHUB_OUTPUT
+          echo "major=$(echo $VER | cut -d. -f1)"  >> $GITHUB_OUTPUT
+          echo "minor=$(echo $VER | cut -d. -f2)"  >> $GITHUB_OUTPUT
+          echo "patch=$(echo $VER | cut -d. -f3)"  >> $GITHUB_OUTPUT
+
+      # ── 4. Find previous tag ─────────────────────────────────────────────────
+      - name: Find previous tag
+        id: prev
+        run: |
+          PREV=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          echo "tag=$PREV" >> $GITHUB_OUTPUT
+          echo "Previous tag: '${PREV:-<none>}'"
+
+      # ── 5. Detect app name ───────────────────────────────────────────────────
+      - name: Detect Frappe app name
+        id: app
+        run: |
+          APP=$(find . -maxdepth 2 -name "hooks.py" \
+                | grep -v ".git" | head -1 \
+                | xargs dirname | xargs basename)
+          [ -z "$APP" ] && echo "ERROR: hooks.py not found" && exit 1
+          echo "name=$APP" >> $GITHUB_OUTPUT
+          echo "App: $APP"
+
+      # ── 6. Generate release notes via GitHub API ─────────────────────────────
+      #
+      #    GitHub's generate-notes looks at all PRs merged between the previous
+      #    tag and target_commitish (our branch), and formats them as:
+      #
+      #      ## What's Changed
+      #      * feat: add bulk export by @dev in https://.../pull/45
+      #      * fix: tax calculation by @dev2 in https://.../pull/42
+      #      * chore: update deps by @dependabot in https://.../pull/40
+      #
+      #      **Full Changelog**: https://.../compare/v1.1.0...v1.2.0
+      #
+      #    We then:
+      #      a) Strip bullet lines whose conventional-commit prefix is noise
+      #         (chore, ci, test, docs, style, build, refactor, wip)
+      #      b) Remove the prefix itself from lines we keep
+      #         so "* feat: add bulk export by @dev" → "* Add bulk export by @dev"
+      #      c) Clean up bot attribution ("by @dependabot", "by @mergify")
+      #      d) Remove empty "## What's Changed" if all lines were stripped
+      # ────────────────────────────────────────────────────────────────────────
+      - name: Generate release notes
+        id: notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="v${{ inputs.version }}"
+          PREV="${{ steps.prev.outputs.tag }}"
+          BRANCH="${{ inputs.branch }}"
+
+          # ── Build the JSON payload ──────────────────────────────────────────
+          # If there's a previous tag, pass it so GitHub knows the range.
+          if [ -n "$PREV" ]; then
+            PAYLOAD=$(jq -n \
+              --arg tag   "$TAG" \
+              --arg target "$BRANCH" \
+              --arg prev  "$PREV" \
+              '{tag_name: $tag, target_commitish: $target, previous_tag_name: $prev}')
+          else
+            PAYLOAD=$(jq -n \
+              --arg tag    "$TAG" \
+              --arg target "$BRANCH" \
+              '{tag_name: $tag, target_commitish: $target}')
+          fi
+
+          # ── Call GitHub generate-notes API ──────────────────────────────────
+          RAW=$(gh api --method POST \
+            -H "Accept: application/vnd.github+json" \
+            /repos/${{ github.repository }}/releases/generate-notes \
+            --input - <<< "$PAYLOAD" \
+            | jq -r '.body')
+
+          echo "── Raw notes from GitHub ──────────────────────────────"
+          echo "$RAW"
+          echo "───────────────────────────────────────────────────────"
+
+          # ── Filter and clean ────────────────────────────────────────────────
+          FILTERED=$(echo "$RAW" \
+            | sed -E '/^\* (chore|ci|test|docs|style|build|refactor|wip)(\(.+\))?:/Id' \
+            | sed -E 's/^\* (feat|fix|perf|improve|improvement)(\(.+\))?:[ ]*/\* /' \
+            | sed -E 's/^\* ([a-z])/\* \u\1/' \
+            | sed -E 's/ by @dependabot//' \
+            | sed -E 's/ by @mergify//' \
+          )
+
+          # ── Write to file ────────────────────────────────────────────────────
+          echo "$FILTERED" > .github/_release_notes.md
+
+          echo ""
+          echo "── Filtered notes ────────────────────────────────────"
+          cat .github/_release_notes.md
+          echo "───────────────────────────────────────────────────────"
+
+      # ── 7. Bump __version__ ──────────────────────────────────────────────────
+      - name: Bump app version
+        run: |
+          INIT="${{ steps.app.outputs.name }}/__init__.py"
+          [ ! -f "$INIT" ] && echo "ERROR: $INIT not found" && exit 1
+          sed -i "s|^__version__ = \".*\"|__version__ = \"${{ inputs.version }}\"|" "$INIT"
+          echo "Updated:"
+          grep "__version__" "$INIT"
+
+      # ── 8. Write Frappe change_log file ─────────────────────────────────────
+      - name: Write change_log file
+        run: |
+          APP="${{ steps.app.outputs.name }}"
+          MAJOR="${{ steps.ver.outputs.major }}"
+          MINOR="${{ steps.ver.outputs.minor }}"
+          PATCH="${{ steps.ver.outputs.patch }}"
+
+          DIR="$APP/change_log/v${MAJOR}"
+          FILE="${DIR}/v${MAJOR}_${MINOR}_${PATCH}.md"
+          mkdir -p "$DIR"
+          cp .github/_release_notes.md "$FILE"
+
+          echo "Created: $FILE"
+
+      # ── 9. Commit both files ─────────────────────────────────────────────────
+      - name: Commit release files
+        run: |
+          APP="${{ steps.app.outputs.name }}"
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add "$APP/__init__.py" "$APP/change_log/"
+
+          if git diff --cached --quiet; then
+            echo "Nothing changed — skipping commit"
+          else
+            git commit -m "chore: release v${{ inputs.version }}"
+            git push origin "${{ inputs.branch }}"
+          fi
+
+      # ── 10. Create tag on the release commit ─────────────────────────────────
+      - name: Create Git tag
+        run: |
+          git tag -a "v${{ inputs.version }}" -m "Release v${{ inputs.version }}"
+          git push origin "v${{ inputs.version }}"
+
+      # ── 11. Create GitHub Release ─────────────────────────────────────────────
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name:  v${{ inputs.version }}
+          name:      "Release v${{ inputs.version }}"
+          body_path: .github/_release_notes.md
+          draft:     ${{ inputs.draft }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── 12. Summary ───────────────────────────────────────────────────────────
+      - name: Summary
+        run: |
+          APP="${{ steps.app.outputs.name }}"
+          MAJOR="${{ steps.ver.outputs.major }}"
+          MINOR="${{ steps.ver.outputs.minor }}"
+          PATCH="${{ steps.ver.outputs.patch }}"
+
+          echo "## Release v${{ inputs.version }} created" >> $GITHUB_STEP_SUMMARY
+          echo "| | |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Tag | \`v${{ inputs.version }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Branch | \`${{ inputs.branch }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Changelog file | \`$APP/change_log/v${MAJOR}/v${MAJOR}_${MINOR}_${PATCH}.md\` |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Notes" >> $GITHUB_STEP_SUMMARY
+          cat .github/_release_notes.md >> $GITHUB_STEP_SUMMARY
