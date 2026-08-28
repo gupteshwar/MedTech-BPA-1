@@ -18,6 +18,17 @@ jobs:
   linter:
     name: 'Frappe Linter'
     runs-on: ubuntu-latest
+    # Skip on a fork-to-upstream PR, or a same-repo release-promotion PR (title
+    # starts with "chore(release):") - see server-tests.yml for the full reasoning.
+    # github.event_name check keeps manual workflow_dispatch runs (no pull_request
+    # context to compare) unaffected.
+    if: >-
+      ${{
+        github.event_name != 'pull_request' || (
+          github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name &&
+          !startsWith(github.event.pull_request.title, 'chore(release):')
+        )
+      }}
 
     steps:
       - uses: actions/checkout@v4
@@ -25,8 +36,7 @@ jobs:
         with:
           python-version: '3.10'
           cache: pip
-      # No pre-commit/action step here: this repo has no .pre-commit-config.yaml, and
-      # that action fails outright without one. Add it back if/when one gets added.
+      - uses: pre-commit/action@v3.0.0
 
       - name: Download Semgrep rules
         run: git clone --depth 1 https://github.com/frappe/semgrep-rules.git frappe-semgrep-rules
@@ -39,6 +49,17 @@ jobs:
   deps-vulnerable-check:
     name: 'Vulnerable Dependency Check'
     runs-on: ubuntu-latest
+    # Skip on a fork-to-upstream PR, or a same-repo release-promotion PR (title
+    # starts with "chore(release):") - see server-tests.yml for the full reasoning.
+    # github.event_name check keeps manual workflow_dispatch runs (no pull_request
+    # context to compare) unaffected.
+    if: >-
+      ${{
+        github.event_name != 'pull_request' || (
+          github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name &&
+          !startsWith(github.event.pull_request.title, 'chore(release):')
+        )
+      }}
 
     steps:
       - uses: actions/setup-python@v5
@@ -71,6 +92,17 @@ jobs:
   secret-scan:
     name: 'Secret Scan'
     runs-on: ubuntu-latest
+    # Skip on a fork-to-upstream PR, or a same-repo release-promotion PR (title
+    # starts with "chore(release):") - see server-tests.yml for the full reasoning.
+    # github.event_name check keeps manual workflow_dispatch runs (no pull_request
+    # context to compare) unaffected.
+    if: >-
+      ${{
+        github.event_name != 'pull_request' || (
+          github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name &&
+          !startsWith(github.event.pull_request.title, 'chore(release):')
+        )
+      }}
     # Using the raw gitleaks CLI directly rather than the official gitleaks/gitleaks-action
     # wrapper - that wrapper requires a paid license for organization-owned repos (even
     # private ones), same paywall pattern as GitHub's own Advanced Security. The gitleaks

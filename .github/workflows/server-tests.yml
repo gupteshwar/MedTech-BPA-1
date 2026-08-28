@@ -7,6 +7,11 @@ on:
   # which needs a permission (contents: write) this job doesn't grant, and that fails the
   # whole check outright on every push to a shared branch.
   pull_request:
+  # Manual escape hatch for the two cases the job below skips automatically (see its
+  # if:) - go to Actions -> Server Tests -> Run workflow, pick the branch. Bypasses
+  # the skip condition entirely (see the event_name check below); does not post a
+  # coverage comment back to a PR since a manual run has no PR number to post to.
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -14,6 +19,35 @@ concurrency:
 
 jobs:
   tests:
+    # Skip two kinds of PR where the commits being merged were, by construction,
+    # already tested elsewhere - re-running here would just burn this org's Actions
+    # minutes on something already verified:
+    #
+    # 1. head.repo != base.repo: a fork-to-upstream PR. The intent is that
+    #    contributors open an intra-fork PR first (their branch -> their fork's
+    #    synced branch), which runs this same workflow against the fork's own
+    #    Actions minutes. Only once that's green do they open a second PR from the
+    #    fork's synced branch into this repo, carrying the exact same commits.
+    #
+    # 2. Title starts with "chore(release):": create-release-pr.yml's own generated
+    #    title format for a promotion PR - matches on the title rather than
+    #    hardcoding branch names so this condition is portable across repos with
+    #    different branch structures. Every historical release-promotion PR in this
+    #    repo uses this title; if that convention or the release automation's title
+    #    format ever changes, this needs revisiting.
+    #
+    # A same-repo PR that isn't a release-promotion (a genuine intra-fork PR, or
+    # today's existing pattern of pushing a branch directly into this repo) still
+    # runs normally. github.event_name check lets a manual workflow_dispatch run
+    # (see on: above) always bypass the skip logic - there's no pull_request
+    # context to evaluate it against anyway.
+    if: >-
+      ${{
+        github.event_name != 'pull_request' || (
+          github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name &&
+          !startsWith(github.event.pull_request.title, 'chore(release):')
+        )
+      }}
     uses: ./.github/workflows/_base-server-tests.yml
     with:
       python-version: '3.10'
