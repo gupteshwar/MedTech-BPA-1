@@ -64,12 +64,31 @@ def daily_credit_check():
         customer_data[inv.customer].append(inv)
 
     # APPLY CREDIT HOLD
+
     for customer_name, inv_list in customer_data.items():
 
         customer = frappe.get_doc("Customer", customer_name)
         
         # CHECK FIRST: Email field must have value
         if not customer.custom_reminder_emails:
+            continue
+
+        # CHECK ADVANCE / CREDIT BALANCE
+        credit_row = frappe.db.sql("""
+            SELECT
+                SUM(credit - debit) AS credit_balance
+            FROM `tabGL Entry`
+            WHERE party_type = 'Customer'
+            AND party = %s
+            AND is_cancelled = 0
+        """, customer_name, as_dict=True)
+
+        credit_balance = (credit_row[0].credit_balance or 0) if credit_row else 0
+
+        total_overdue = sum(inv.outstanding_amount or 0 for inv in inv_list)
+
+        # Skip Credit Hold if advance balance covers overdue amount
+        if credit_balance >= total_overdue:
             continue
 
         frappe.db.set_value(

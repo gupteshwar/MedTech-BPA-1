@@ -345,7 +345,7 @@
    "_comments": null,
    "_liked_by": null,
    "_user_tags": null,
-   "creation": "2026-08-14 14:55:10.070271",
+   "creation": "2026-08-17 18:05:22.613444",
    "default_value": null,
    "doc_type": "Journal Entry Account",
    "docstatus": 0,
@@ -353,7 +353,7 @@
    "field_name": "branch",
    "idx": 0,
    "is_system_generated": 0,
-   "modified": "2026-08-14 14:55:10.070271",
+   "modified": "2026-08-17 18:05:22.613444",
    "modified_by": "Administrator",
    "module": null,
    "name": "Journal Entry Account-branch-reqd",
@@ -364,7 +364,7 @@
    "property": "reqd",
    "property_type": "Check",
    "row_name": null,
-   "value": "1"
+   "value": "0"
   },
   {
    "_assign": null,
