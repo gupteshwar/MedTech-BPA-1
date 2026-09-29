@@ -74,17 +74,20 @@ def daily_credit_check():
             continue
 
         # CHECK ADVANCE / CREDIT BALANCE
-        credit_balance = frappe.db.sql("""
+        credit_row = frappe.db.sql("""
             SELECT
-                SUM(credit - debit)
+                SUM(credit - debit) AS credit_balance
             FROM `tabGL Entry`
             WHERE party_type = 'Customer'
             AND party = %s
             AND is_cancelled = 0
-        """, customer_name)[0][0] or 0
+        """, customer_name, as_dict=True)
+
+        credit_balance = (credit_row[0].credit_balance or 0) if credit_row else 0
 
         total_overdue = sum(inv.outstanding_amount or 0 for inv in inv_list)
 
+        # Skip Credit Hold if advance balance covers overdue amount
         if credit_balance >= total_overdue:
             continue
 
