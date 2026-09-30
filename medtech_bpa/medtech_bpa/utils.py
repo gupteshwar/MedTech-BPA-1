@@ -73,22 +73,22 @@ def daily_credit_check():
         if not customer.custom_reminder_emails:
             continue
 
-        # CHECK ADVANCE / CREDIT BALANCE
-        credit_row = frappe.db.sql("""
+        # CHECK CUSTOMER NET BALANCE
+        balance_row = frappe.db.sql("""
             SELECT
-                SUM(credit - debit) AS credit_balance
+                SUM(debit - credit) AS net_outstanding
             FROM `tabGL Entry`
             WHERE party_type = 'Customer'
             AND party = %s
             AND is_cancelled = 0
         """, customer_name, as_dict=True)
 
-        credit_balance = (credit_row[0].credit_balance or 0) if credit_row else 0
+        net_outstanding = (
+            balance_row[0].net_outstanding or 0
+        ) if balance_row else 0
 
-        total_overdue = sum(inv.outstanding_amount or 0 for inv in inv_list)
-
-        # Skip Credit Hold if advance balance covers overdue amount
-        if credit_balance >= total_overdue:
+        # Skip Credit Hold if customer has no net outstanding balance
+        if net_outstanding <= 0:
             continue
 
         frappe.db.set_value(
@@ -97,9 +97,6 @@ def daily_credit_check():
             "custom_credit_hold",
             1
         )
-
-        if not customer.custom_reminder_emails:
-            continue
 
         recipients = [
             e.strip()
@@ -159,6 +156,31 @@ def daily_credit_check():
 
     for cust in customers_on_hold:
 
+        # CHECK CUSTOMER NET BALANCE
+        balance_row = frappe.db.sql("""
+            SELECT
+                SUM(debit - credit) AS net_outstanding
+            FROM `tabGL Entry`
+            WHERE party_type = 'Customer'
+            AND party = %s
+            AND is_cancelled = 0
+        """, cust.name, as_dict=True)
+
+        net_outstanding = (
+            balance_row[0].net_outstanding or 0
+        ) if balance_row else 0
+
+        # Remove Credit Hold if customer has no net outstanding balance
+        if net_outstanding <= 0:
+            frappe.db.set_value(
+                "Customer",
+                cust.name,
+                "custom_credit_hold",
+                0
+            )
+            continue
+
+        # Otherwise, remove hold only when there are no overdue invoices
         overdue_exists = frappe.db.exists(
             "Sales Invoice",
             {
