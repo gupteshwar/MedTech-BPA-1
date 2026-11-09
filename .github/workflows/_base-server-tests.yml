@@ -274,6 +274,51 @@ jobs:
         env:
           TYPE: server
 
+      - name: Exclude Script Reports from coverage
+        # Frappe doesn't scaffold tests for Script Reports (only DocTypes), and by team
+        # policy reports aren't unit-tested, so an untested report would otherwise drag
+        # the repo-wide Coverage and the PR's Diff Coverage down. Frappe builds its own
+        # Coverage() with a hardcoded omit list that overrides any .coveragerc, so drop
+        # the report/ files from coverage.xml here instead - both the Coverage Report and
+        # Diff Coverage steps below read that file. Totals are recomputed so the badge
+        # matches. Best-effort: on failure coverage is simply reported unfiltered.
+        if: ${{ !inputs.fake-success && !cancelled() }}
+        continue-on-error: true
+        run: |
+          python3 - <<'PYEOF'
+          import re
+          import xml.etree.ElementTree as ET
+
+          path = "/home/runner/frappe-bench/sites/coverage.xml"
+          tree = ET.parse(path)
+          root = tree.getroot()
+
+
+          def rate(classes):
+              lines = [line for cls in classes for line in cls.iter("line")]
+              covered = sum(1 for line in lines if int(line.get("hits", 0)) > 0)
+              return len(lines), covered, (covered / len(lines) if lines else 1)
+
+
+          packages = root.find("packages")
+          for package in list(packages):
+              classes = package.find("classes")
+              for cls in list(classes):
+                  if re.search(r"(^|/)report/", cls.get("filename", "")):
+                      classes.remove(cls)
+              if len(classes) == 0:
+                  # an empty <classes/> breaks MishaKav/pytest-coverage-comment's parser
+                  packages.remove(package)
+              else:
+                  package.set("line-rate", str(rate(classes)[2]))
+
+          valid, covered, line_rate = rate(list(root.iter("class")))
+          root.set("lines-valid", str(valid))
+          root.set("lines-covered", str(covered))
+          root.set("line-rate", str(line_rate))
+          tree.write(path)
+          PYEOF
+
       - name: Split JUnit XML
         # Frappe writes one XML document per test category (unit, integration) into the
         # same junit.xml, so with more than one category the file is not valid XML and
