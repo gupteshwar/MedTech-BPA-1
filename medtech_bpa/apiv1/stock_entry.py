@@ -336,7 +336,7 @@ def getAllStockEntry(timestamp="",limit=50,offset=0,purpose=""):
                     'stock_entry_type':"Process Rejections"})
     elif purpose == "supplier_rejection":
         stock_entry_list = frappe.get_all("Stock Entry",
-            fields=["name","modified as updated_at","posting_date","stock_entry_type","from_warehouse","to_warehouse","docstatus"],
+            fields=["name","modified as updated_at","posting_date","stock_entry_type","supplier_details","from_warehouse","to_warehouse","docstatus"],
             filters={
                     'modified':['>',timestamp],
                     'stock_entry_type':"Supplier Rejection"
@@ -346,7 +346,7 @@ def getAllStockEntry(timestamp="",limit=50,offset=0,purpose=""):
             start=offset
             )
         stock_entry_list_with_timestamp=frappe.get_all("Stock Entry",
-            fields=["name","modified as updated_at","posting_date","stock_entry_type","from_warehouse","to_warehouse","docstatus"],
+            fields=["name","modified as updated_at","posting_date","stock_entry_type","supplier_details","from_warehouse","to_warehouse","docstatus"],
             filters={
                     'modified':['>',timestamp],
                     'stock_entry_type':"Supplier Rejection"}
