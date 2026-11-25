@@ -142,9 +142,14 @@ def create_pick_list_confirmation(
             if process_flag=="":
                 return api_response(status=True, data=[], message="Enter Process Flag", status_code=400)
             try:
-                qty=int(qty)
-            except:
-                return api_response(status=False, data=[], message="Please Enter Proper Qty", status_code=400)
+                qty = float(str(qty).replace(",", "").strip())
+            except (ValueError, TypeError):
+                return api_response(
+                    status=False,
+                    data=[],
+                    message="Please Enter Proper Qty",
+                    status_code=400
+                )
             if  qty<=0:
                  return api_response(status=False, data=[], message="Please Enter Positive Qty", status_code=400)
             try:

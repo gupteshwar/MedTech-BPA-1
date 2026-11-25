@@ -1,6 +1,12 @@
 import frappe
 from ..api_utils.response import api_response
 from datetime import datetime
+from decimal import Decimal
+def convert_to_int(value):
+    if isinstance(value, str):
+        value = value.replace(",", "").strip()
+
+    return int(Decimal(str(value)))
 @frappe.whitelist(allow_guest=False)
 def create_quality_inspection(data):
     try:
@@ -28,7 +34,7 @@ def create_quality_inspection(data):
             return api_response(status_code=400, message=f"{item_code} is not a valid item", data=[], status=False)
 
         billed_qty = data.get("billed_qty")
-        billed_qty=int(billed_qty)
+        billed_qty=convert_to_int(billed_qty)
         if billed_qty is None or billed_qty < 0:
             return api_response(status_code=400, message=f"{billed_qty} is not a valid billed quantity", data=[], status=False)
         sample_size=data.get('sample_size')
@@ -36,7 +42,7 @@ def create_quality_inspection(data):
         if sample_size is None or sample_size < 0:
             return api_response(status_code=400, message=f"{sample_size} is not a valid sample size", data=[], status=False)
         rejected_qty=data.get('rejected_qty')
-        rejected_qty=int(rejected_qty)
+        rejected_qty=convert_to_int(rejected_qty)
         if rejected_qty is None or rejected_qty < 0:
             return api_response(status_code=400, message=f"{rejected_qty} is not a valid rejected quantity", data=[], status=False)
         branch=data.get('branch')
@@ -66,7 +72,7 @@ def create_quality_inspection(data):
 
         
         #!quantity validation===============================================================================>
-        purchase_item_qty=int(purchase_receipt_in_items[0].get("qty"))
+        purchase_item_qty=convert_to_int(purchase_receipt_in_items[0].get("qty"))
         if billed_qty>purchase_item_qty:
             return api_response(status=False, data=[], 
                                 message="Billed Quantity Exceeds Item Quantity in in Purchase Receipt/GRN/Visual Inspection Report", status_code=400)
@@ -96,7 +102,10 @@ def create_quality_inspection(data):
             fields=["billed_qty","rejected_quantity"])
         
         for item in quality_inspection_item_quantity:
-            total_quality_inspection_item_quantity+=int(item.get("billed_qty"))+int(item.get("rejected_quantity"))
+            total_quality_inspection_item_quantity += (
+                convert_to_int(item.get("billed_qty") or 0) +
+                convert_to_int(item.get("rejected_quantity") or 0)
+            )
         
         quantity_left_for_qc=purchase_item_qty-total_quality_inspection_item_quantity
         if billed_qty>quantity_left_for_qc:
